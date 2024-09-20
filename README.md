@@ -39,7 +39,7 @@ My solution for the Codecademy Personal Budget 1 Project. From Codecademy:
 - expense_description (String)
 - expense_amount_USD (Number)
 - envelope_id (Number)
-- envelope_name (String)
+- ~~envelope_name (String)~~
 **Example object:**
 ``` JS
 {
@@ -79,3 +79,6 @@ My solution for the Codecademy Personal Budget 1 Project. From Codecademy:
 
 ## Roadblocks & Learnings (Me)
 - TBD
+
+## TO-DO
+- Break validation methods in setters (class-definitions.js) into generic utility functions

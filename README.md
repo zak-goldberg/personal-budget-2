@@ -12,7 +12,7 @@ My solution for the Codecademy Personal Budget 1 Project. From Codecademy:
 - Use the command line to navigate your files and folders
 - Use **Postman** to test API endpoints
 
-## Assumptions
+## Assumptions (Me)
 - One to one mapping between envelopes & expenses
 
 ## Schemas (Me)
@@ -51,7 +51,7 @@ My solution for the Codecademy Personal Budget 1 Project. From Codecademy:
   envelope_name: 'Groceries'
 }
 ```
-## APIs (ME)
+## APIs (Me)
 ### Envelopes
 - listEnvelopes - GET /envelopes
 - getEnvelopeById - GET /envelopes/:envelope_id
@@ -77,5 +77,5 @@ My solution for the Codecademy Personal Budget 1 Project. From Codecademy:
   - updateExpenseById
   - deleteExpenseById
 
-## Roadblocks & Learnings
+## Roadblocks & Learnings (Me)
 - TBD

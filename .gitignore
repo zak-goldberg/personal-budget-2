@@ -1,0 +1,3 @@
+# Ignore dependencies & npm packages
+node_modules/
+package*

@@ -95,6 +95,11 @@ class Envelope {
             throw err;
         }
     }
+
+    // Getter that computes remaining budget for the envelope
+    get remainingBudget() {
+        return Number(this.budgetedValueUSD) - Number(this.totalSpentUSD);
+    }
 };
 
 class Expense {

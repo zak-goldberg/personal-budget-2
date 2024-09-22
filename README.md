@@ -23,6 +23,7 @@ My solution for the Codecademy Personal Budget 1 Project. From Codecademy:
 - budgeted_value_USD (Number)
 - total_spent_USD (Number)
 - budget_remaining_USD (Number) - *COMPUTED*
+
 **Example object:**
 ``` JS
 {
@@ -40,6 +41,7 @@ My solution for the Codecademy Personal Budget 1 Project. From Codecademy:
 - expense_amount_USD (Number)
 - envelope_id (Number)
 - ~~envelope_name (String)~~
+
 **Example object:**
 ``` JS
 {
@@ -78,7 +80,7 @@ My solution for the Codecademy Personal Budget 1 Project. From Codecademy:
   - deleteExpenseById
 
 ## Roadblocks & Learnings (Me)
-- TBD
+- Where to put the arrays to store the envelope and expense objects?
 
 ## TO-DO
 - Break validation methods in setters (class-definitions.js) into generic utility functions

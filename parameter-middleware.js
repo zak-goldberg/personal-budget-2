@@ -1,14 +1,20 @@
 // Import envelope and expense array
-const { envelopeArray, expenseArray } = require('./personal-budget-app.js');
+const { envelopeArray } = require('./the-database-lol.js');
 
 // envelopeId validation
 // add req.envelope, req.envelopeId, req.envelopeIndex
 const envelopeIdValidator = (req, res, next, id) => {
-    const arrayOfIds = envelopeArray.reduce((accumulator, currentValue) => accumulator.push(currentValue.envelopeId), []);
-    if (arrayOfIds.includes(id)) {
-        req.envelope = req.body;
-        req.envelopeId = id;
-        req.envelopeIndex = arrayOfIds.indexOf(id);
+    const arrayOfIds = envelopeArray.reduce((accumulator, currentValue) => {
+        accumulator.push(currentValue.envelopeId);
+        return(accumulator);
+    }, []);
+    // console.log(arrayOfIds);
+    if (arrayOfIds.includes(Number(id))) {
+        const envelopeIndex = arrayOfIds.indexOf(Number(id));
+        req.envelopeIndex = envelopeIndex;
+        req.envelope = envelopeArray[envelopeIndex];
+        req.envelopeId = Number(id);
+        next();
     } else {
         return next(new Error('Please provide a valid envelope id.'));
     }

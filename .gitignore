@@ -1,3 +1,9 @@
 # Ignore dependencies & npm packages
 node_modules/
 package*
+
+# Ignore test files
+test-classes.js
+
+# Ignore logs
+logs/

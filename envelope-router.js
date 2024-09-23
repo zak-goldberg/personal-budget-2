@@ -2,18 +2,28 @@
 const express = require('express');
 const envelopeRouter = express.Router();
 
-// Import and use bodyParser and cors libraries
+// Import and use bodyParser,cors, and morgan libraries
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const morgan = require('morgan');
 envelopeRouter.use(cors());
 envelopeRouter.use(bodyParser.json());
+envelopeRouter.use(morgan('dev'));
 
-// Import envelopeArray
-const { envelopeArray } = require('./personal-budget-app.js');
+// Import helper functions
+const { validEnvelope, convertEnvelopeToPlain } = require('./utilities.js');
+
+// Create a new stream to write to file in this directory
+const fs = require('fs');
+const path = require('path');
+const envelopeLogStream = fs.createWriteStream(path.join(__dirname, 'logs', 'envelope-logs.txt'), { flags: 'a' });
+
+// Import envelope array
+const { envelopeArray } = require('./the-database-lol.js');
 
 // Import and use envelopeId validation middleware
-const envelopeIdValidator = require('./parameter-middleware.js');
-envelopeRouter.parameter('envelopeId', envelopeIdValidator);
+const { envelopeIdValidator } = require('./parameter-middleware.js');
+envelopeRouter.param('envelopeId', envelopeIdValidator);
 
 // Import envelope class definition
 const { Envelope } = require('./class-definitions.js');
@@ -23,34 +33,24 @@ const genericErrorHandler = require('./generic-error-handler.js');
 
 // GET /envelopes
 envelopeRouter.get('/', (req, res, next) => {
-    res.send(envelopeArray);
+    const plainEnvelopeArray = envelopeArray.map((envelope) => convertEnvelopeToPlain(envelope));
+    res.send(plainEnvelopeArray);
 });
 
 // GET /envelopes/:envelopeId
 envelopeRouter.get('/:envelopeId', (req, res, next) => {
-    res.send(req.envelope);
+    const plainEnvelope = convertEnvelopeToPlain(req.envelope);
+    res.send(plainEnvelope);
 });
-
-const validEnvelope = (envelope) => {
-  if (
-    envelope.envelopeName && typeof envelope.envelopeName === 'string'
-    && envelope.envelopeDescription && typeof envelope.envelopeDescription === 'string'
-    && envelope.budgetedValueUSD && Number(envelope.budgetedValueUSD) !== NaN
-    && envelope.totalSpentUSD && Number(envelope.totalSpentUSD) !== NaN
-    ) {
-    return true;
-  } else {
-    return false;
-  }
-};
 
 // POST /envelopes
 envelopeRouter.post('/', (req, res, next) => {
-    const envReq = req.envelope;
-    if (validEnvelope(req.envelope)){
-        const newEnvelope = new Envelope(envReq.envelopeName, envReq.envelopeDescription, envReq.budgetedValueUSD, envReq.totalSpentUSD);
+    const envelopeRequest = req.body;
+    if (validEnvelope(envelopeRequest)){
+        const newEnvelope = new Envelope(envelopeRequest.envelopeName, envelopeRequest.envelopeDescription, envelopeRequest.budgetedValueUSD, envelopeRequest.totalSpentUSD);
         envelopeArray.push(newEnvelope);
-        res.send(newEnvelope);
+        const plainEnvelope = convertEnvelopeToPlain(newEnvelope);
+        res.send(plainEnvelope);
     } else {
         const validationErr = new Error('Please enter a valid envelope.');
         return next(validationErr);
@@ -60,13 +60,14 @@ envelopeRouter.post('/', (req, res, next) => {
 // PUT /envelopes/:envelopeId
 envelopeRouter.put('/:envelopeId', (req, res, next) => {
     const envelopeIndex = req.envelopeIndex;
-    const updatedEnvelope = req.envelope;
+    const updatedEnvelope = req.body;
     if (validEnvelope(req.envelope)) {
         envelopeArray[envelopeIndex].envelopeName = updatedEnvelope.envelopeName;
         envelopeArray[envelopeIndex].envelopeDescription = updatedEnvelope.envelopeDescription;
         envelopeArray[envelopeIndex].budgetedValueUSD = updatedEnvelope.budgetedValueUSD;
         envelopeArray[envelopeIndex].totalSpentUSD = updatedEnvelope.totalSpentUSD;
-        res.send(updatedEnvelope);
+        const plainEnvelope = convertEnvelopeToPlain(envelopeArray[envelopeIndex]);
+        res.send(plainEnvelope);
     } else {
         const validationErr = new Error('Please enter a valid envelope.');
         return next(validationErr); 
@@ -88,4 +89,4 @@ envelopeRouter.delete('/:envelopeId', (req, res, next) => {
 envelopeRouter.use(genericErrorHandler);
 
 // Export envelopeRouter as module
-module.exports = { envelopeRouter, envelopeArray };
+module.exports = { envelopeRouter };

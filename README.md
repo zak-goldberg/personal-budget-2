@@ -78,9 +78,17 @@ My solution for the Codecademy Personal Budget 1 Project. From Codecademy:
   - createExpense
   - updateExpenseById
   - deleteExpenseById
+- Utility functions:
+  - validEnvelope
+  - convertEnvelopeToPlain (see #3 [here](#Roadblocks-&-Learnings-(Me)))
+- Generic error handler function
 
 ## Roadblocks & Learnings (Me)
-- Where to put the arrays to store the envelope and expense objects?
+1. The "database" (an array), needs to be initialized in a distinct file and imported into any of the files that use it. This is a best practice for seperation of concerns and Node will throw a circular dependency warning if this isn't followed  (assuming those files depend on eachother).
+2. JavaScript treats the number 0 as falsy!
+3. To maintain proper encapsulation, the API handlers need to convert the class instances with private properties to a plain object before sending back to the client.
 
-## TO-DO
+Exposing private parameters from an object in an API? Maintaining encapsulation in the API.
+
+## TO-DO (Me)
 - Break validation methods in setters (class-definitions.js) into generic utility functions

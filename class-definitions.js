@@ -3,7 +3,7 @@ class Envelope {
     
     constructor(envelopeName, envelopeDescription, budgetedValueUSD, totalSpentUSD) {
         Envelope.lastEnvelopeId += 1;        
-        this._envelopeId = Envelope.lastId;
+        this._envelopeId = Envelope.lastEnvelopeId;
         this._envelopeName = envelopeName;
         this._envelopeDescription = envelopeDescription;
         this._budgetedValueUSD = budgetedValueUSD;
@@ -12,7 +12,7 @@ class Envelope {
 
 // Getter for envelope id (read-only)
     get envelopeId () {
-        return this.envelopeId
+        return this._envelopeId;
     }
 
 // Getter, setter, and validation method for _envelopeName    
@@ -41,16 +41,16 @@ class Envelope {
         return this._envelopeDescription;
     }
     
-    validateEnvelopeDescription(name) {
-        if (typeof name !== 'string') throw new Error('Please enter a valid string for a name.'); 
-        if (name.length >= 100) throw new Error('Name length must be less than or equal to 30 characters.');
-        if (!/^[a-zA-Z\s]+\.?$/.test(name)) throw new Error('Name can only include letters. No numbers, spaces, or special characters.');
+    validateEnvelopeDescription(description) {
+        if (typeof description !== 'string') throw new Error('Please enter a valid string for a name.'); 
+        if (description.length >= 100) throw new Error('Name length must be less than or equal to 30 characters.');
+        if (!/^[a-zA-Z\s]+\.?$/.test(description)) throw new Error('Name can only include letters. No numbers or special characters (other than a trailing period).');
     }
     
     set envelopeDescription(description) {
         try {
             this.validateEnvelopeDescription(description);
-            this._envelopeDescritpion = description;
+            this._envelopeDescription = description;
         } catch (err) {
             console.error('Validation failed:', err.message);
             throw err;
@@ -72,6 +72,7 @@ class Envelope {
             this._budgetedValueUSD = Number(value);
         } catch (err) {
             console.error('Validation failed:', err.message);
+            throw err;
         }
     }
 
@@ -83,7 +84,7 @@ class Envelope {
     validateTotalSpent(value) {
         if (Number(value) === NaN) throw new Error('Please enter a valid number value for the envelope budget.');
         if (Number(value) > this.budgetedValueUSD) throw new Error(`Total spent for the envelope must be less than budgeted value: ${this.budgetedValueUSD}.`);
-        if (Number(value) <= 0) throw new Error('Total spent must be greater than 0 USD.');
+        if (Number(value) < 0) throw new Error('Total spent must be greater than 0 USD.');
     }
 
     set totalSpentUSD(value) {
@@ -202,5 +203,19 @@ class Expense {
         }
     }
 };
+
+// Test creating an instance of each class
+/*
+const newEnvelope = new Envelope('Test', 'Test', 10, 0);
+console.log(newEnvelope.envelopeId);
+
+const newEnvelope2 = new Envelope('Test2', 'Test2', 20, 10);
+console.log(newEnvelope2.envelopeId);
+
+const newArray = [];
+newArray.push(newEnvelope);
+newArray.push(newEnvelope2);
+console.log(newArray);
+*/
 
 module.exports = { Envelope, Expense };

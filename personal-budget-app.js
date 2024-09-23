@@ -10,14 +10,16 @@ const { Envelope, Expense } = require('./class-definitions');
 
 // Import envelope and expese routers and arrays
 const { envelopeRouter } = require('./envelope-router.js');
+const { transferRouter } = require('./transfer-router.js');
 // const { expenseRouter } = require('./expense-router.js');
 
 // Import and use parameter middleware functions
 // const { expenseIdValidator, envelopeIdValidator } = require('./parameter-middleware.js');
 // app.param('envelopeId', envelopeIdValidator);
 
-// register envelopeRouter & expenseRouter with the main app
+// register envelopeRouter, transferRouter, & expenseRouter with the main app
 app.use('/envelopes', envelopeRouter);
+app.use('/transfers', transferRouter);
 // app.use('/envelopes/:envelopeId/expenses', expenseRouter);
 
 // set up server to start taking requets

@@ -17,21 +17,21 @@ My solution for the Codecademy Personal Budget 1 Project. From Codecademy:
 
 ## Schemas (Me)
 ### Envelopes
-- envelope_id (Number)
-- envelope_name (String)
-- envelope_description (String)
-- budgeted_value_USD (Number)
-- total_spent_USD (Number)
-- budget_remaining_USD (Number) - *COMPUTED*
+- envelopeId (Number)
+- envelopeName (String)
+- envelopeDescription (String)
+- budgetedValueUSD (Number)
+- totalSpentUSD (Number)
+- budgetRemainingUSD (Number) - *COMPUTED*
 
 **Example object:**
-``` JS
+``` JSON
 {
-  envelope_id: 1,
-  envelope_name: 'Groceries',
-  envelope_description: 'For food and related goods',
-  budgeted_value_USD: 450,
-  total_spent_USD: 200
+    "envelopeId": 1,
+    "envelopeName": "Entertainment",
+    "envelopeDescription": "Song and dance",
+    "budgetedValueUSD": 200,
+    "totalSpentUSD": 2
 }
 ```
 ### Expenses
@@ -61,6 +61,14 @@ My solution for the Codecademy Personal Budget 1 Project. From Codecademy:
 - updateEnvelopeById - PUT /envelopes/:envelope_id
   - Can only update name, description, and budgeted_value_USD
 - deleteEnvelopeById - DELETE /envelopes/:envelope_id
+- transferBudget - POST /transfers, request body:
+``` JSON
+{
+  "sourceEnvelopeId": 1, // Number,
+  "targetEnvelopeId": 2, // Number,
+  "transferAmount": 500 // Number (less than source envelope budgetedValueUSD)
+}
+```
 ### Expenses
 - listExpenses - GET /envelopes/:envelope_id/expenses
 - getExpenseById - GET /envelopes/:envelope_id/expenses/:expense_id
@@ -69,6 +77,7 @@ My solution for the Codecademy Personal Budget 1 Project. From Codecademy:
 - deleteExpenseById - DELETE /envelopes/:envelope_id/expenses/:expense_id
 
 ## Additional Components (Me)
+- Class definitions for Envelope and Expense
 - Parameter middleware functions to validate `:envelope_id` and `:expense_id`
 - Middleware function to compute budget_remaining_USD for:
   - listEnvelopes - GET /envelopes
@@ -87,8 +96,7 @@ My solution for the Codecademy Personal Budget 1 Project. From Codecademy:
 1. The "database" (an array), needs to be initialized in a distinct file and imported into any of the files that use it. This is a best practice for seperation of concerns and Node will throw a circular dependency warning if this isn't followed  (assuming those files depend on eachother).
 2. JavaScript treats the number 0 as falsy!
 3. To maintain proper encapsulation, the API handlers need to convert the class instances with private properties to a plain object before sending back to the client.
-
-Exposing private parameters from an object in an API? Maintaining encapsulation in the API.
+4. PUT APIs are idempotent. POST APIs are not idempotent.
 
 ## TO-DO (Me)
 - Break validation methods in setters (class-definitions.js) into generic utility functions

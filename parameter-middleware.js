@@ -1,15 +1,13 @@
 // Import envelope and expense array
 const { envelopeArray } = require('./the-database-lol.js');
 
+// Import envelope and expense id validator helper functions
+const { validEnvelopeId } = require('./utilities.js');
+
 // envelopeId validation
 // add req.envelope, req.envelopeId, req.envelopeIndex
 const envelopeIdValidator = (req, res, next, id) => {
-    const arrayOfIds = envelopeArray.reduce((accumulator, currentValue) => {
-        accumulator.push(currentValue.envelopeId);
-        return(accumulator);
-    }, []);
-    // console.log(arrayOfIds);
-    if (arrayOfIds.includes(Number(id))) {
+    if (validEnvelopeId(Number(id))) {
         const envelopeIndex = arrayOfIds.indexOf(Number(id));
         req.envelopeIndex = envelopeIndex;
         req.envelope = envelopeArray[envelopeIndex];

@@ -1,5 +1,5 @@
 // Import in envelope and expense arrays
-const { envelopeArray } = require('./the-database-lol.js');
+const { envelopeArray, expenseArray } = require('./the-database-lol.js');
 
 // Helper function to validate envelope based on the schema
 const validEnvelope = (envelope) => {
@@ -69,4 +69,53 @@ const validTransferRequest = (transferReq) => {
     return true;
 };
 
-module.exports = { validEnvelope, convertEnvelopeToPlain, validEnvelopeId, validTransferRequest, getEnvelopeIndex }
+// Helper function to get expense by envelope Id
+const getExpensesByEnvelopeId = (envelopeId) => {
+    if (validEnvelopeId(Number(envelopeId))) {
+        const filteredExpenses = expenseArray.filter((expense => Number(expense.envelopeId) === Number(envelopeId)));
+        return filteredExpenses;
+    } else {
+        throw new Error('Please enter a valid envelope id.');
+    }
+};
+
+// Helper function to validate a new expense object
+const validExpense = (expense) => {
+    if (
+        expense.expenseName && typeof expense.expenseName === 'string'
+        && expense.expenseDescription && typeof expense.expenseDescription === 'string'
+        && expense.expenseAmountUSD !== null && !Number.isNaN(Number(expense.expenseAmountUSD))
+        && expense.envelopeId !== null && validEnvelopeId(Number(expense.envelopeId))
+    ) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+// Helper function to convert instances of the envelope class to a plain object
+function convertExpenseToPlain(expense) {
+    if (validExpense(expense)) {
+        const plainExpense = {};
+        plainExpense.expenseId = expense.expenseId;
+        plainExpense.expenseName = expense.expenseName;
+        plainExpense.expenseDescription = expense.expenseDescription;
+        plainExpense.expenseAmountUSD = expense.expenseAmountUSD;
+        plainExpense.envelopeId = expense.envelopeId;
+        return plainExpense;
+    } else {
+        throw new Error('Failed to convert. Not a valid expense.');
+    }
+};
+
+// Helper function to validate expense ids
+function validExpenseId(expenseId) {
+    const arrayOfIds = expenseArray.reduce((accumulator, currentValue) => {
+        accumulator.push(currentValue.expenseId);
+        return accumulator;
+    }, []);
+    if (arrayOfIds.includes(expenseId)) return true;
+    return false;
+}
+
+module.exports = { validEnvelope, convertEnvelopeToPlain, validEnvelopeId, validTransferRequest, getEnvelopeIndex, getExpensesByEnvelopeId, validExpense, convertExpenseToPlain, validExpenseId }

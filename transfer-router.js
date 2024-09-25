@@ -2,14 +2,6 @@
 const express = require('express');
 const transferRouter = express.Router();
 
-// Import and use bodyParser,cors, and morgan libraries
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const morgan = require('morgan');
-transferRouter.use(cors());
-transferRouter.use(bodyParser.json());
-transferRouter.use(morgan('dev'));
-
 // Import helper functions
 const { validEnvelope, convertEnvelopeToPlain, validTransferRequest, getEnvelopeIndex } = require('./utilities.js');
 

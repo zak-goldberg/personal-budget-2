@@ -1,13 +1,17 @@
 // Import envelope and expense array
-const { envelopeArray } = require('./the-database-lol.js');
+const { envelopeArray, expenseArray } = require('./the-database-lol.js');
 
 // Import envelope and expense id validator helper functions
-const { validEnvelopeId } = require('./utilities.js');
+const { validEnvelopeId, validExpenseId } = require('./utilities.js');
 
 // envelopeId validation
 // add req.envelope, req.envelopeId, req.envelopeIndex
 const envelopeIdValidator = (req, res, next, id) => {
     if (validEnvelopeId(Number(id))) {
+        const arrayOfIds = envelopeArray.reduce((accumulator, currentValue) => {
+            accumulator.push(currentValue.envelopeId);
+            return accumulator;
+        }, []);
         const envelopeIndex = arrayOfIds.indexOf(Number(id));
         req.envelopeIndex = envelopeIndex;
         req.envelope = envelopeArray[envelopeIndex];
@@ -20,11 +24,16 @@ const envelopeIdValidator = (req, res, next, id) => {
 
 // expenseId validation
 const expenseIdValidator = (req, res, next, id) => {
-    const arrayOfIds = envelopeArray.reduce((accumulator, currentValue) => accumulator.push(currentValue.envelopeId), []);
-    if (arrayOfIds.includes(id)) {
-        req.expense = req.body;
-        req.expenseId = id;
-        req.expenseIndex = arrayOfIds.indexOf(id);
+    if (validExpenseId(Number(id))) {
+        const arrayOfIds = expenseArray.reduce((accumulator, currentValue) => {
+            accumulator.push(currentValue.expenseId);
+            return accumulator;
+        }, []);
+        const expenseIndex = arrayOfIds.indexOf(Number(id));
+        req.expenseIndex = expenseIndex;
+        req.expense = expenseArray[expenseIndex];
+        req.expenseId = Number(id);
+        next();
     } else {
         return next(new Error('Please provide a valid expense id.'));
     }

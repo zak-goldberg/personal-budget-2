@@ -2,18 +2,10 @@
 const express = require('express');
 const envelopeRouter = express.Router();
 
-// Import and use bodyParser,cors, and morgan libraries
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const morgan = require('morgan');
-envelopeRouter.use(cors());
-envelopeRouter.use(bodyParser.json());
-envelopeRouter.use(morgan('dev'));
-
 // Import helper functions
 const { validEnvelope, convertEnvelopeToPlain } = require('./utilities.js');
 
-// Create a new stream to write to file in this directory
+// Create a new stream to write to log file in this directory
 const fs = require('fs');
 const path = require('path');
 const envelopeLogStream = fs.createWriteStream(path.join(__dirname, 'logs', 'envelope-logs.txt'), { flags: 'a' });
@@ -24,6 +16,10 @@ const { envelopeArray } = require('./the-database-lol.js');
 // Import and use envelopeId validation middleware
 const { envelopeIdValidator } = require('./parameter-middleware.js');
 envelopeRouter.param('envelopeId', envelopeIdValidator);
+
+// Nest the expense router for /:envelopeId/expenses
+const expenseRouter = require('./expense-router.js');
+envelopeRouter.use('/:envelopeId/expenses', expenseRouter);
 
 // Import envelope class definition
 const { Envelope } = require('./class-definitions.js');

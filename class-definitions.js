@@ -155,7 +155,7 @@ class Expense {
     set expenseDescription(description) {
         try {
             this.validateExpenseDescription(description);
-            this._expenseDescritpion = description;
+            this._expenseDescription = description;
         } catch (err) {
             console.error('Validation failed:', err.message);
             throw err;
@@ -203,19 +203,5 @@ class Expense {
         }
     }
 };
-
-// Test creating an instance of each class
-/*
-const newEnvelope = new Envelope('Test', 'Test', 10, 0);
-console.log(newEnvelope.envelopeId);
-
-const newEnvelope2 = new Envelope('Test2', 'Test2', 20, 10);
-console.log(newEnvelope2.envelopeId);
-
-const newArray = [];
-newArray.push(newEnvelope);
-newArray.push(newEnvelope2);
-console.log(newArray);
-*/
 
 module.exports = { Envelope, Expense };

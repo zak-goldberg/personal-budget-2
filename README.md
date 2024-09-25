@@ -97,6 +97,9 @@ My solution for the Codecademy Personal Budget 1 Project. From Codecademy:
 2. JavaScript treats the number 0 as falsy!
 3. To maintain proper encapsulation, the API handlers need to convert the class instances with private properties to a plain object before sending back to the client.
 4. PUT APIs are idempotent. POST APIs are not idempotent.
+5. You can perform arithmetic on properties accessed via getter/setter methods.
+6. Apply request/reply logging, cors, and body parsing at the global app level, not the routing level, to avoid duplicate execution.
 
 ## TO-DO (Me)
 - Break validation methods in setters (class-definitions.js) into generic utility functions
+- Remove envelopeId from the request body of POST envelopes/:envelopeId/expenses since it is already a parameter in the path

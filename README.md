@@ -99,7 +99,9 @@ My solution for the Codecademy Personal Budget 1 Project. From Codecademy:
 4. PUT APIs are idempotent. POST APIs are not idempotent.
 5. You can perform arithmetic on properties accessed via getter/setter methods.
 6. Apply request/reply logging, cors, and body parsing at the global app level, not the routing level, to avoid duplicate execution.
+7. Response body is deleted when status code is set to 204.
 
 ## TO-DO (Me)
 - Break validation methods in setters (class-definitions.js) into generic utility functions
 - Remove envelopeId from the request body of POST envelopes/:envelopeId/expenses since it is already a parameter in the path
+- Test edge cases, not just happy path.

@@ -6,9 +6,9 @@ const envelopeArray = [];
 const expenseArray = [];
 
 // Add Envelope test data
-envelopeArray.push(new Envelope('Groceries', 'For food and related goods', 450, 0));
-envelopeArray.push(new Envelope('Gas', 'For going places', 1000, 0));
-envelopeArray.push(new Envelope('Entertainment', 'Song and dance', 200, 0));
+envelopeArray.push(new Envelope('Groceries', 'For food and related goods', 450, 10));
+envelopeArray.push(new Envelope('Gas', 'For going places', 1000, 100));
+envelopeArray.push(new Envelope('Entertainment', 'Song and dance', 200, 50));
 //console.log(envelopeArray);
 
 // Add Expense test data

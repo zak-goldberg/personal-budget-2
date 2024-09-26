@@ -3,7 +3,7 @@ const express = require('express');
 const expenseRouter = express.Router();
 
 // Import helper functions
-const { validEnvelope, convertEnvelopeToPlain, validEnvelopeId, getEnvelopeIndex, validExpense, convertExpenseToPlain, getExpensesByEnvelopeId } = require('./utilities.js');
+const { validEnvelope, convertEnvelopeToPlain, validEnvelopeId, getEnvelopeIndex, validExpense, convertExpenseToPlain, getExpensesByEnvelopeId, validExpenseId } = require('./utilities.js');
 
 // Create a new stream to write to file in this directory
 const fs = require('fs');
@@ -72,7 +72,41 @@ expenseRouter.post('/', (req, res, next) => {
 });
 
 // PUT /envelopes/:envelope_id/expenses/:expense_id
+expenseRouter.put('/:expenseId', (req, res, next) => {
+    // Validate the request body, including the expense id (param middleware)
+    if (validExpense(req.body)) {
+        // As a transaction, update the expense and envelope arrays
+        try {
+            const newExpenseAmt = Number(req.body.expenseAmountUSD);
+            const changeInExpenseAmt = newExpenseAmt - req.expense.expenseAmountUSD;
+            expenseArray[req.expenseIndex].expenseName = req.body.expenseName;
+            expenseArray[req.expenseIndex].expenseDescription = req.body.expenseDescription;
+            expenseArray[req.expenseIndex].expenseAmountUSD = newExpenseAmt;
+            // Update the totalSpentUSD for the corresponding envelope
+            envelopeArray[req.envelopeIndex].totalSpentUSD += changeInExpenseAmt;
+            const updatedExpensePlain = convertExpenseToPlain(expenseArray[req.expenseIndex]);
+            // Return the updated expense
+            res.send(updatedExpensePlain);
+        } catch (err) {
+            console.error(err.type, err.message);
+            throw err;
+        }
+    } else {
+        throw new Error('Please include valid expense properities in the request body.')
+    }
+});
+
 // DELETE /envelopes/:envelope_id/expenses/:expense_id
+expenseRouter.delete('/:expenseId', (req, res, next) => {
+    try {
+        envelopeArray[req.envelopeIndex].totalSpentUSD -= Number(req.expense.expenseAmountUSD);
+        expenseArray.splice(req.expenseIndex, 1);
+        res.status(204).send();
+    } catch (err) {
+        console.error(err.type, err.message);
+        throw err;
+    }
+});
 
 // Error handler
 expenseRouter.use(genericErrorHandler);

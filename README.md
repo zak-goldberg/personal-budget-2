@@ -1,16 +1,15 @@
-# Personal Budget Pt. 1
+# Personal Budget Pt. 2
 
 ## Overview (Codecademy)
-My solution for the Codecademy Personal Budget 1 Project. From Codecademy:
-> For this project, you will build an API that allows clients to create and manage a personal budget. Using [Envelope Budgeting](https://www.thebalance.com/what-is-envelope-budgeting-1293682) principles, your API should allow users to manage budget envelopes and track the balance of each envelope. Your API should follow best practices regarding REST endpoint naming conventions, proper response codes, etc. Make sure to include data validation to ensure users do not overspend their budget!
+You will extend the Personal Budget API created in [Personal Budget, Part I](https://github.com/zak-goldberg/Personal-Budget-1). In the first Budget API, we did not have a way to persist data on the server. Now, we will build out a persistence layer (aka a database or DB) to keep track of the budget envelopes and their balances. You will need to plan out your database design, then use PostgreSQL to create the necessary tables. Once your database is set up, connect your API calls to a database. Once you’ve added and connected your database, you will add a new feature to your server that allows users to enter transactions. This feature will put your envelope system into action! Finally, you will make your API available for others to use by documenting it with Swagger and deploying it with Render.
 
 ## Project Objectives (Codecademy)
-- Build an API using **Node.js** and **Express**
-- Be able to create, read, update, and delete envelopes
-- Create endpoint(s) to update envelope balances
-- Use **Git** version control to keep track of your work
-- Use the command line to navigate your files and folders
-- Use **Postman** to test API endpoints
+- Use Git version control
+- Create documentation using the Swagger API
+- Implement a database
+- Integrate existing API endpoints with the database layer
+- Database implementation for transactions
+- Deploy the application using Render
 
 ## Assumptions (Me)
 - One to one mapping between envelopes & expenses
@@ -130,16 +129,5 @@ My solution for the Codecademy Personal Budget 1 Project. From Codecademy:
 - Generic error handler function (generic-error-handler.js)
 
 ## Roadblocks & Learnings (Me)
-1. The "database" (an array), needs to be initialized in a distinct file and imported into any of the files that use it. This is a best practice for seperation of concerns and Node will throw a circular dependency warning if this isn't followed (assuming those files depend on eachother).
-2. JavaScript treats the number 0 as falsy!
-3. To maintain proper encapsulation, the API handlers need to convert the class instances with private properties to a plain object before sending back to the client.
-4. PUT APIs are idempotent. POST APIs are not idempotent.
-5. You can perform arithmetic on properties accessed via getter/setter methods.
-6. Apply request/reply logging, cors, and body parsing at the global app level, not the routing level, to avoid duplicate execution.
-7. Response body is deleted when status code is set to 204.
 
 ## TO-DO (Me)
-- Break validation methods in setters (class-definitions.js) into generic utility functions
-- Remove envelopeId from the request body of POST envelopes/:envelopeId/expenses since it is already a parameter in the path
-- Test edge cases, not just happy path.
-- Organize the file structure and update import statements.

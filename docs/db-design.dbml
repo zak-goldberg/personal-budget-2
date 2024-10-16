@@ -1,0 +1,47 @@
+Project PersonalBudgetPt2 {
+  database_type: "PostgreSQL"
+}
+
+// Table Definitions
+
+Table envelopes {
+  id int [pk, increment]
+  name varchar(100) [not null]
+  description text
+  totalAmountUSD money [not null]
+  created_at timestamp [default: `now()`]
+}
+
+Table envelopes_audit {
+  id int [pk, increment]
+  operation varchar(50) [not null]
+  envelope_id int [not null, ref: > envelopes.id]
+  envelope_name varchar(100) [not null]
+  envelope_description text
+  envelope_totalAmountUSD money [not null]
+  changed_by varchar(255) [not null]
+  changed_at timestamp [not null, default: `now()`]
+}
+
+Table expenses {
+  id int [pk, increment]
+  envelope_id int [not null, ref: > envelopes.id]
+  description varchar(255) [not null]
+  amountUSD money [not null]
+  created_at timestamp [default: `now()`]
+
+  Indexes {
+    envelope_id
+  }
+}
+
+Table expenses_audit {
+  id int [pk, increment]
+  operation varchar(50) [not null]
+  expense_id int [not null, ref: > expenses.id]
+  envelope_id int [not null, ref: > envelopes.id]
+  expenses_description varchar(255) [not null]
+  expenses_amountUSD money [not null]
+  changed_by varchar(255) [not null]
+  changed_at timestamp [not null, default: `now()`]
+}

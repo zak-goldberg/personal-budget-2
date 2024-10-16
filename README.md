@@ -15,6 +15,8 @@ You will extend the Personal Budget API created in [Personal Budget, Part I](htt
 - One to one mapping between envelopes & expenses
 
 ## Schemas (Me)
+### Database
+- [PostgreSQL DB Diagram](https://dbdiagram.io/d/Personal-Budget-Part-2-670f078197a66db9a31ca699)
 ### Envelopes
 - envelopeId (Number) - *READ-ONLY*
 - envelopeName (String)
@@ -129,5 +131,8 @@ You will extend the Personal Budget API created in [Personal Budget, Part I](htt
 - Generic error handler function (generic-error-handler.js)
 
 ## Roadblocks & Learnings (Me)
+### PostgreSQL
+- Don't use camel case for PostgreSQL item naming unless you hate yourself.
+- If a trigger runs AFTER DELETE on a base table to add a corresponding row in an audit table but the audit table has a foreign key constraint on the primary key from the base table, PostgreSQL will throw a foreign key violation error.
 
 ## TO-DO (Me)

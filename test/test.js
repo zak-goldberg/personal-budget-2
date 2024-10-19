@@ -14,7 +14,7 @@ describe('envelopeRouter', () => {
     let validEnvelopeObject = {
         envelopeName: 'Stuff',
         envelopeDescription: 'Description of stuff',
-        totalAmountUSD: '$400'
+        totalAmountUSD: '$400.00'
     };
     const invalidEnvelopeObject = {
         property1: 'value1',
@@ -25,7 +25,7 @@ describe('envelopeRouter', () => {
         validEnvelopeObject = {
             envelopeName: 'Stuff',
             envelopeDescription: 'Description of stuff',
-            totalAmountUSD: '$400'
+            totalAmountUSD: '$400.00'
         };
     });
 
@@ -111,18 +111,21 @@ describe('envelopeRouter', () => {
                 .post('/envelopes')
                 .send(validEnvelopeObject)
                 .expect(200);
+            // console.log(responsePost.body);    
 
             // Save new id
-            const newEnvelopeId = response.body.id;
+            const newEnvelopeId = await responsePost.body.envelopeId;
+            console.log(`newEnvelopeId: ${newEnvelopeId}`);
+            console.log(`typeof newEnvelopeId: ${typeof newEnvelopeId}`);
 
             // Verify
             // GET the new envelope from the database
             const responseGet = await request(app)
-                .get('/envelopes/' & newEnvelopeId)
+                .get('/envelopes/' + newEnvelopeId.toString())
                 .expect(200);
 
             // Add the newEnvelopeId to validEnvelopeObject in preparation for deep equal test
-            validEnvelopeObject.id = newEnvelopeId;
+            validEnvelopeObject.envelopeId = newEnvelopeId;
             
             // Check that the new envelope object deeply equals the original object
             expect(responseGet.body).to.deep.equal(validEnvelopeObject);
@@ -130,7 +133,7 @@ describe('envelopeRouter', () => {
             // Teardown
             // Delete new Envelope from the database
             await request(app)
-                .delete('/envelopes/' & newEnvelopeId)
+                .delete('/envelopes/' + newEnvelopeId)
                 .expect(204);
         });
 

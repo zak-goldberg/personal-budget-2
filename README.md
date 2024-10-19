@@ -62,8 +62,7 @@ You will extend the Personal Budget API created in [Personal Budget, Part I](htt
 {
     "envelopeName": "Entertainment", // String
     "envelopeDescription": "Song and dance", // String
-    "budgetedValueUSD": 200, // Number
-    "totalSpentUSD": 2 // Number
+    "totalAmountUSD": "$200.00", // String formatted as currency (USD)
 }
 ```
 - updateEnvelopeById - PUT /envelopes/:envelope_id

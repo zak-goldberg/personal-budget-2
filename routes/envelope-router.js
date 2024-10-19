@@ -4,7 +4,7 @@ const envelopeRouter = express.Router();
 
 // Import helper functions & repositories
 const { validEnvelope, convertEnvelopeToPlain } = require('../utils/utilities.js');
-const { getEnvelopes, getEnvelopeById } = require('../repositories/envelopeRepositories.js');
+const { getEnvelopes, getEnvelopeById, createEnvelope } = require('../repositories/envelopeRepositories.js');
 
 // Create a new stream to write to log file in this directory
 const fs = require('fs');
@@ -34,7 +34,7 @@ envelopeRouter.get('/', async (req, res, next) => {
         const plainEnvelopeArray = envelopeArray.map((envelope) => convertEnvelopeToPlain(envelope));
         res.send(plainEnvelopeArray);
     } catch (err) {
-        res.status(500).send();
+        return next(err);
     }
 });
 
@@ -51,27 +51,29 @@ envelopeRouter.get('/:envelopeId', async (req, res, next) => {
             err.message.indexOf('invalid input syntax for type integer') !== -1) {
             res.status(404).send();
         } else {
-            res.status(500).send();
+            return next(err);
         }
     }
-
 });
 
-/*
 // POST /envelopes
-envelopeRouter.post('/', (req, res, next) => {
+envelopeRouter.post('/', async (req, res, next) => {
     const envelopeRequest = req.body;
     if (validEnvelope(envelopeRequest)){
-        const newEnvelope = new Envelope(envelopeRequest.envelopeName, envelopeRequest.envelopeDescription, envelopeRequest.budgetedValueUSD, envelopeRequest.totalSpentUSD);
-        envelopeArray.push(newEnvelope);
-        const plainEnvelope = convertEnvelopeToPlain(newEnvelope);
-        res.send(plainEnvelope);
+        try {
+            const newEnvelope = await createEnvelope(envelopeRequest.envelopeName, envelopeRequest.envelopeDescription, envelopeRequest.totalAmountUSD);
+            const plainEnvelope = convertEnvelopeToPlain(newEnvelope);
+            res.send(plainEnvelope);
+        } catch (err) {
+            return next(err);
+        }
     } else {
         const validationErr = new Error('Please enter a valid envelope.');
         return next(validationErr);
     }
 });
 
+/*
 // PUT /envelopes/:envelopeId
 envelopeRouter.put('/:envelopeId', (req, res, next) => {
     const envelopeIndex = req.envelopeIndex;
@@ -88,18 +90,16 @@ envelopeRouter.put('/:envelopeId', (req, res, next) => {
         return next(validationErr); 
     }
 });
+*/
 
 // DELETE /envelopes/:envelopeId
 envelopeRouter.delete('/:envelopeId', (req, res, next) => {
     try {
-        const envelopeIndex = req.envelopeIndex;
-        envelopeArray.splice(envelopeIndex, 1);
         res.status(204).send();
     } catch (err) {
         return next(err);
     }
 });
-*/
 
 // Error handler
 envelopeRouter.use(genericErrorHandler);

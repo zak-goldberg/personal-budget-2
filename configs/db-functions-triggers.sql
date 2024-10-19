@@ -48,7 +48,7 @@ CREATE OR REPLACE FUNCTION create_envelopes_audit_record() RETURNS TRIGGER AS $$
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER envelopes_audit
-AFTER INSERT OR UPDATE OR DELETE ON "envelopes"
+AFTER INSERT OR UPDATE ON "envelopes"
 FOR EACH ROW
 EXECUTE FUNCTION create_envelopes_audit_record();
 
@@ -71,6 +71,6 @@ CREATE OR REPLACE FUNCTION create_expenses_audit_record() RETURNS TRIGGER AS $$
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER expenses_audit
-AFTER INSERT OR UPDATE OR DELETE ON "expenses"
+AFTER INSERT OR UPDATE ON "expenses"
 FOR EACH ROW
 EXECUTE FUNCTION create_expenses_audit_record();

@@ -28,11 +28,33 @@ const getEnvelopeById = async (envelopeId) => {
             resultObject.description,
             resultObject.total_amount_usd
         );
+        return requestedEnvelope;
     } catch (err) {
         // console.error(err.stack);
         throw err;
     }
-    return requestedEnvelope;
+};
+
+const createEnvelope = async (envelopeName, envelopeDescription, totalAmountUSD) => {
+    try {
+        await pgClient.query('INSERT INTO envelopes (name, description, total_amount_usd) VALUES ($1, $2, $3);', 
+            [envelopeName, envelopeDescription, totalAmountUSD]
+        );
+        const res = await pgClient.query('SELECT id, name, description, total_amount_usd FROM envelopes WHERE name = $1 AND description = $2 AND total_amount_usd = $3;',
+            [envelopeName, envelopeDescription, totalAmountUSD]
+        );
+        const resultObject = res.rows[0];
+        requestedEnvelope = new Envelope (
+            resultObject.id,
+            resultObject.name,
+            resultObject.description,
+            resultObject.total_amount_usd
+        );
+        return requestedEnvelope;
+    } catch (err) {
+        console.error(err.stack);
+        throw err;
+    }
 };
 
 /*
@@ -41,4 +63,10 @@ getEnvelopeById('cats')
     .catch((err) => console.error(err.stack));
 */
 
-module.exports = { getEnvelopes, getEnvelopeById };
+/*
+createEnvelope('Savings', 'For saving', '$5,000.00')
+    .then((res) => console.log(res))
+    .catch((err) => console.error(err.stack));
+*/
+
+module.exports = { getEnvelopes, getEnvelopeById, createEnvelope };

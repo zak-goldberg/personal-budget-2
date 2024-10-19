@@ -91,23 +91,24 @@ class Envelope {
 };
 
 class Expense {
-    static lastExpenseId = 0;
-
-    constructor(expenseName, expenseDescription, expenseAmountUSD, envelopeId) {
-        Expense.lastExpenseId += 1;
-        this._expenseId = Expense.lastExpenseId;
-        this._expenseName = expenseName;
+    constructor(expenseId, expenseDescription, expenseAmountUSD, envelopeId) {
+        this._expenseId = expenseId;
         this._expenseDescription = expenseDescription;
         this._expenseAmountUSD = expenseAmountUSD;
         this._envelopeId = envelopeId;
     }
 
-    // Getter for expenseId
+    // Getter & setter for expenseId
     get expenseId () {
         return this._expenseId;
     }
 
+    set expenseId (id) {
+        this._expenseId = id;
+    }
+
     // Getter, validation, and setter for expenseName
+    /*
     get expenseName() {
         return this._expenseName;
     }
@@ -127,6 +128,7 @@ class Expense {
             throw err;
         }
     }
+    */
 
 // Getter, setter, and validation for expenseDescription
     get expenseDescription() {

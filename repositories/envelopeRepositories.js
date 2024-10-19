@@ -2,6 +2,7 @@ const { pgClient } = require('../configs/db');
 const { Envelope } = require('../models/class-definitions');
 
 const getEnvelopes = async () => {
+    // TO-DO: add into try/catch block
     const res = await pgClient.query('SELECT * FROM envelopes;');
     const envelopeArray = [];
     for (row of res.rows) {
@@ -44,7 +45,7 @@ const createEnvelope = async (envelopeName, envelopeDescription, totalAmountUSD)
             [envelopeName, envelopeDescription, totalAmountUSD]
         );
         const resultObject = res.rows[0];
-        requestedEnvelope = new Envelope (
+        const requestedEnvelope = new Envelope (
             resultObject.id,
             resultObject.name,
             resultObject.description,

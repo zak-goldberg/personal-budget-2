@@ -2,8 +2,9 @@
 const express = require('express');
 const expenseRouter = express.Router();
 
-// Import helper functions
+// Import helper functions & repositories
 const { validEnvelope, convertEnvelopeToPlain, validEnvelopeId, getEnvelopeIndex, validExpense, convertExpenseToPlain, getExpensesByEnvelopeId, validExpenseId } = require('../utils/utilities.js');
+const { getExpensesByEnvelopeId, getExpenseByExpenseId, createExpense, updateEnvelope, deleteExpense } = require('../repositories/expenseRepositories.js');
 
 // Create a new stream to write to file in this directory
 const fs = require('fs');
@@ -11,10 +12,12 @@ const path = require('path');
 const expenseLogStream = fs.createWriteStream(path.join(__dirname, '..', 'logs', 'expense-logs.txt'), { flags: 'a' });
 
 // Import envelope array
+/*
 const { envelopeArray, expenseArray } = require('../test/the-database-lol.js');
+*/
 
-// Import envelope class definition
-const { Envelope, Expense } = require('../models/class-definitions.js');
+// Import expense class definition
+const { Expense } = require('../models/class-definitions.js');
 
 // Import generic error handler
 const genericErrorHandler = require('../middleware/generic-error-handler.js');
@@ -25,17 +28,14 @@ expenseRouter.param('expenseId', expenseIdValidator);
 
 // GET /expenses
 // GET /envelopes/:envelope_id/expenses
-expenseRouter.get('/', (req, res, next) => {
-// if req.envelope exists, envelopeIdValidator ran on the request and it included an :envelopeId in the path
-    if (req.envelope) {
-        const filteredExpenses = getExpensesByEnvelopeId(Number(req.envelopeId));
-        const plainExpenseArray = filteredExpenses.map((expense) => convertExpenseToPlain(expense));
-        res.send(plainExpenseArray);
-// if not, this is just a request for all /expenses
-    } else {
+expenseRouter.get('/', async (req, res, next) => {
+    try {
+        const expenseArray = await getExpensesByEnvelopeId();
         const plainExpenseArray = expenseArray.map((expense) => convertExpenseToPlain(expense));
-        res.send(plainExpenseArray);
-    }
+        res.status(200).send(plainExpenseArray);
+    } catch (err) {
+        return next(err);
+    }    
 });
 
 // GET /envelopes/:envelope_id/expenses/:expense_id

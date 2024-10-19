@@ -82,10 +82,9 @@ const getExpensesByEnvelopeId = (envelopeId) => {
 // Helper function to validate a new expense object
 const validExpense = (expense) => {
     if (
-        expense.expenseName && typeof expense.expenseName === 'string'
-        && expense.expenseDescription && typeof expense.expenseDescription === 'string'
-        && expense.expenseAmountUSD !== null && !Number.isNaN(Number(expense.expenseAmountUSD))
-        && expense.envelopeId !== null && validEnvelopeId(Number(expense.envelopeId))
+        expense.expenseDescription && typeof expense.expenseDescription === 'string'
+        && expense.expenseAmountUSD !== null 
+        && expense.envelopeId !== null
     ) {
     return true;
   } else {

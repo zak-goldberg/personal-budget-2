@@ -39,19 +39,20 @@ const envelopeIdValidator = async (req, res, next, id) => {
 };
 
 // expenseId validation
-const expenseIdValidator = (req, res, next, id) => {
-    if (validExpenseId(Number(id))) {
-        const arrayOfIds = expenseArray.reduce((accumulator, currentValue) => {
-            accumulator.push(currentValue.expenseId);
-            return accumulator;
-        }, []);
-        const expenseIndex = arrayOfIds.indexOf(Number(id));
-        req.expenseIndex = expenseIndex;
-        req.expense = expenseArray[expenseIndex];
-        req.expenseId = Number(id);
+const expenseIdValidator = async (req, res, next, id) => {
+    try {
+        // Call getExpenseByExpenseId with parameter, move to next if no error
+        await getExpenseByExpenseId(id);
         next();
-    } else {
-        return next(new Error('Please provide a valid expense id.'));
+    } catch (err) {
+        // Change status code to 404 based on specific error messages
+        if (err.message === 'ID not in DB.' ||
+            err.message.indexOf('invalid input syntax for type integer') !== -1) {
+            res.status(404).send();
+        } else {
+        // Otherwise pass error to the generic error handler    
+            return next(err);
+        }
     }
 };
 

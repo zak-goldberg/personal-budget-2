@@ -3,7 +3,6 @@ const mocha = require('mocha');
 const request = require('supertest');
 const chai = require('chai');
 const expect = chai.expect;
-const { validEnvelopeId } = require('../utils/utilities');
 
 describe('expenseRouter', () => {
     // Initialize variables that will be used in tests below

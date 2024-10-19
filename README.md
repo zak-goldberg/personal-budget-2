@@ -10,6 +10,7 @@ You will extend the Personal Budget API created in [Personal Budget, Part I](htt
 - Integrate existing API endpoints with the database layer
 - Database implementation for transactions
 - Deploy the application using Render
+- Write unit tests using Supertest, Mocha, and Chai (Me)
 
 ## Assumptions (Me)
 - One to one mapping between envelopes & expenses

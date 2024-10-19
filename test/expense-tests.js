@@ -3,44 +3,53 @@ const mocha = require('mocha');
 const request = require('supertest');
 const chai = require('chai');
 const expect = chai.expect;
-const { Envelope, Expense } = require('../models/class-definitions');
 const { validEnvelopeId } = require('../utils/utilities');
 
-describe('envelopeRouter', () => {
-    // Initializing variables used in envelopeRouter tests
+describe('expenseRouter', () => {
+    // Initialize variables that will be used in tests below
     const validEnvelopeId = 1;
-    const invalidEnvelopeId1 = '1500';
-    const invalidEnvelopeId2 = 'ladksfihowefjks';
-    let validEnvelopeObject = {
-        envelopeName: 'Stuff',
-        envelopeDescription: 'Description of stuff',
-        totalAmountUSD: '$400.00'
+    const validExpenseObject = {
+        expenseName: "Waffles",
+        expenseDescription: "Really tasty waffles.",
+        expenseAmountUSD: "$5.00",
+        envelopeId: validEnvelopeId
     };
-    const invalidEnvelopeObject = {
+    const validExpenseObject2 = {
+        expenseName: "CrispyWaffles",
+        expenseDescription: "Really crispy waffles.",
+        expenseAmountUSD: "$6.00",
+        envelopeId: validEnvelopeId
+    }
+    let newExpenseId;
+    const invalidExpenseId1 = 60000000000;
+    const invalidExpenseId2 = 'slanfewhushkfjnweuifhweoifaoweijf';
+    const invalidExpenseObject = {
         property1: 'value1',
         property2: 'value2'
     };
 
-    beforeEach(() => {
-        validEnvelopeObject = {
-            envelopeName: 'Stuff',
-            envelopeDescription: 'Description of stuff',
-            totalAmountUSD: '$400.00'
-        };
+    before(async () => {
+        // Get valid expenses
+        const response = await request(app)
+            .post('/envelopes/' + validEnvelopeId + '/expenses/')
+            .send(validExpenseObject)
+            .expect(200);
+
+        newExpenseId = response.body.expenseId;
     });
 
-    describe('GET /envelopes', () => {
-        
+    describe('GET /envelopes/:envelope_id/expenses', () => {
         it('should return a 200 status code', async () => {
             await request(app)
-                .get('/envelopes')
-                .expect(200)
+                .get('/envelopes/' + validEnvelopeId + '/expenses')
+                .expect(200);
         });
         
         it('should return an array', async () => {
             // Exercise
             const response = await request(app)
-                .get('/envelopes');
+                .get('/envelopes/' + validEnvelopeId + '/expenses')
+                .expect(200);
 
             // Verify
             expect(response.body).to.be.an('array');
@@ -49,7 +58,8 @@ describe('envelopeRouter', () => {
         it('should not be empty', async () => {
             // Exercise
             const response = await request(app)
-                .get('/envelopes');
+                .get('/envelopes/' + validEnvelopeId + '/expenses')
+                .expect(200);
             
             // Verify
             expect(response.body.length).to.be.greaterThan(0);
@@ -58,27 +68,27 @@ describe('envelopeRouter', () => {
         it('should return an array of plain envelope objects', async () => {
             // Exercise
             const response = await request(app)
-                .get('/envelopes');
+                .get('/envelopes/' + validEnvelopeId + '/expenses')
+                .expect(200);
 
             // Verify
             response.body.forEach((item) => {
-                expect(item).to.have.all.keys('envelopeId', 'envelopeName', 'envelopeDescription', 'totalAmountUSD');
+                expect(item).to.have.all.keys('expenseId', 'expenseName', 'expenseDescription', 'expenseAmountUSD', 'envelopeId');
             });               
         });
     });
-    
-    describe('GET /envelopes/:envelopeId', () => {
 
+    describe('GET /envelopes/:envelope_id/expenses/:expense_id', () => {
         it('should return a 200 status code when passed a validEnvelopeId', async () => {
             await request(app)
-                .get('/envelopes/' + validEnvelopeId)
+                .get('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId)
                 .expect(200);
         });
         
         it('should return an envelope when passed a valid id', async () => {
             // Exercise
             const response = await request(app)
-                .get('/envelopes/' + validEnvelopeId)
+                .get('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId)
                 .expect(200);
 
             // Verify
@@ -87,21 +97,21 @@ describe('envelopeRouter', () => {
 
         it('should return a 404 status code when passed an invalid id', async () => {
             await request(app)
-                .get('/envelopes/' + invalidEnvelopeId1)
+                .get('/envelopes/' + invalidExpenseId1)
                 .expect(404);
 
             await request(app)
-                .get('/envelopes/' + invalidEnvelopeId2)
+                .get('/envelopes/' + invalidExpenseId2)
                 .expect(404);
         });
     });
 
-    describe('POST /envelopes', () => {
+    describe('POST /envelopes/:envelope_id/expenses', () => {
         // TO-DO: Add teardown
         it('should return a 200 status code when passed a valid input', async () => {
             await request(app)
-                .post('/envelopes')
-                .send(validEnvelopeObject)
+                .post('/envelopes/' + validEnvelopeId + '/expenses')
+                .send(validExpenseObject)
                 .expect(200);
         });
 
@@ -109,74 +119,74 @@ describe('envelopeRouter', () => {
             // Exercise
             // Create validEnvelopeObject
             const responsePost = await request(app)
-                .post('/envelopes')
-                .send(validEnvelopeObject)
-                .expect(200);
+            .post('/envelopes/' + validEnvelopeId + '/expenses')
+            .send(validExpenseObject)
+            .expect(200);
             // console.log(responsePost.body);    
 
             // Save new id
-            const newEnvelopeId = responsePost.body.envelopeId;
+            const newExpenseId2 = responsePost.body.envelopeId;
             // console.log(`newEnvelopeId: ${newEnvelopeId}`);
             // console.log(`typeof newEnvelopeId: ${typeof newEnvelopeId}`);
 
             // Verify
             // GET the new envelope from the database
             const responseGet = await request(app)
-                .get('/envelopes/' + newEnvelopeId)
+                .get('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId2)
                 .expect(200);
 
             // Add the newEnvelopeId to validEnvelopeObject in preparation for deep equal test
-            validEnvelopeObject.envelopeId = newEnvelopeId;
+            validExpenseObject.expenseId = newExpenseId2;
             
             // Check that the new envelope object deeply equals the original object
-            expect(responseGet.body).to.deep.equal(validEnvelopeObject);
+            expect(responseGet.body).to.deep.equal(validExpenseObject);
 
             // Teardown
             // Delete new Envelope from the database
             // console.log(`newEnvelopeId: ${newEnvelopeId}`);
             // console.log(`typeof newEnvelopeId: ${typeof newEnvelopeId}`);
             await request(app)
-                .delete('/envelopes/' + newEnvelopeId)
+                .delete('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId2)
                 .expect(204);
         });
 
         it('should return a 400 status code when passed an invalid input', async () => {
             await request(app)
-                .post('/envelopes')
-                .send(invalidEnvelopeObject)
+                .post('/envelopes/' + validEnvelopeId + '/expenses')
+                .send(invalidExpenseObject)
                 .expect(400);
         });
     });
 
-    describe('PUT /envelopes/:envelopeId', () => {
+    describe('PUT /envelopes/:envelope_id/expenses/:expense_id', () => {
         
-        // Create variable to store envelope before updating it
-        let originalEnvelopeObject;
+        // Create variable to store expense before updating it
+        let originalExpenseObject;
         
         beforeEach( async () => {
-            // Get current value for validEnvelopeId before updating it
+            // Get current value for newExpenseId before updating it
             const beforeResponse = await request(app)
-                .get('/envelopes/' + validEnvelopeId)
+                .get('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId)
                 .expect(200);
 
-            originalEnvelopeObject = beforeResponse.body;
-            // Remove id property
-            delete originalEnvelopeObject.id;
+            originalExpenseObject = beforeResponse.body;
+            // Remove expenseId property
+            delete originalExpenseObject.expenseId;
         });
 
         afterEach( async () => {
-            // Return validEnvelopeId to original value
+            // Return validExpenseId to original value
             await request(app)
-                .put('/envelopes/' + validEnvelopeId)
-                .send(originalEnvelopeObject)
+                .put('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId)
+                .send(originalExpenseObject)
                 .expect(200);
         });
         
         it('should return a 200 status code when passed a valid input', async () => {
             // Exercise
             await request(app)
-                .put('/envelopes/' + validEnvelopeId)
-                .send(validEnvelopeObject)
+                .put('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId)
+                .send(validExpenseObject2)
                 .expect(200);
         });
 
@@ -184,113 +194,97 @@ describe('envelopeRouter', () => {
             // Exercise
             // Create validEnvelopeObject
             await request(app)
-                .put('/envelopes/' + validEnvelopeId)
-                .send(validEnvelopeObject)
+                .put('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId)
+                .send(validExpenseObject2)
                 .expect(200);
 
             // Verify
             // GET the new envelope from the database
             const responseGet = await request(app)
-                .get('/envelopes/' + validEnvelopeId)
+                .get('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId)
                 .expect(200);
 
-            // Add validEnvelopeId to validEnvelopeObject in preparation for deep equal test
-            validEnvelopeObject.envelopeId = validEnvelopeId;
+            // Add newExpenseId to validExpenseObject2 in preparation for deep equal test
+            validExpenseObject2.expenseId = newExpenseId;
             
             // Check that the new envelope object deeply equals the original object
-            expect(responseGet.body).to.deep.equal(validEnvelopeObject);
+            expect(responseGet.body).to.deep.equal(validExpenseObject2);
         });
 
         it('should return a 404 status code when passed an invalid id', async () => {
             // Exercise
             // Invalid ID and Valid body
             await request(app)
-                .put('/envelopes/' + invalidEnvelopeId1)
-                .send(validEnvelopeObject)
+                .put('/envelopes/' + validEnvelopeId + '/expenses/' + invalidExpenseId1)
+                .send(validExpenseObject)
                 .expect(404);
 
             // Invalid ID and Valid body
             await request(app)
-                .put('/envelopes/' + invalidEnvelopeId2)
-                .send(validEnvelopeObject)
+                .put('/envelopes/' + validEnvelopeId + '/expenses/' + invalidExpenseId2)
+                .send(validExpenseObject)
                 .expect(404);
             
             // Invalid ID and Invalid body
             await request(app)
-                .put('/envelopes/' + invalidEnvelopeId1)
-                .send(invalidEnvelopeObject)
+                .put('/envelopes/' + validEnvelopeId + '/expenses/' + invalidExpenseId2)
+                .send(invalidExpenseObject)
                 .expect(404);
         });
 
         it('should return a 400 status code when passed an invalid input(body)', async () => {
             // Valid ID and Invalid body
             await request(app)
-                .put('/envelopes/' + validEnvelopeId)
-                .send(invalidEnvelopeObject)
+                .put('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId)
+                .send(invalidExpenseObject)
                 .expect(400);
         });
     });
 
-    describe('DELETE /envelopes/:envelopeId', () => {
-        let newEnvelopeId;
+    describe('DELETE /envelopes/:envelope_id/expenses/:expense_id', () => {
+        let newExpenseId2;
         
         beforeEach( async () => {
-            // List all envelopes
-            response = await request(app)
-                .post('/envelopes')
-                .send(validEnvelopeObject)
+            // Create new expense 2
+            const response = await request(app)
+                .post('/envelopes/' + validEnvelopeId + '/expenses/')
+                .send(validExpenseObject)
                 .expect(200);
-            
-            // Get the id of the last envelope in the list
-            newEnvelopeId = response.body.envelopeId;
-        });
 
-        afterEach( async () => {
-            // console.log(JSON.stringify(lastEnvelope));
-            // Add the removed envelope back
-            /*
-            await request(app)
-                .post('/envelopes')
-                .send(lastEnvelope)
-                .expect(200);
-            */    
+            newExpenseId2 = response.body.expenseId;
         });
 
         it('should return a 200 status code when passed a valid input', async () => {
             await request(app)
-                .delete('/envelopes/' + newEnvelopeId)
+                .delete('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId2)
                 .expect(204);
         });
 
-        it('should remove the specified envelope form the database', async () => {
+        it('should remove the specified expense form the database', async () => {
             // Exercise
             // Delete validEnvelopeObject
             await request(app)
-                .delete('/envelopes/' + newEnvelopeId)
+                .delete('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId2)
                 .expect(204);
 
             // Verify
             // GET the new envelope from the database
             await request(app)
-                .get('/envelopes/' + newEnvelopeId)
+                .get('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId2)
                 .expect(404);
         });
 
         it('should return a 404 status code when passed an invalid id', async () => {
             // Exercise
-            // Invalid ID and Valid body
+            // Invalid ID number
             await request(app)
-                .put('/envelopes/' + invalidEnvelopeId1)
+                .put('/envelopes/' + invalidExpenseId1)
                 .expect(404);
 
-            // Invalid ID and Valid body
+            // Invalid ID string
             await request(app)
-                .put('/envelopes/' + invalidEnvelopeId2)
+                .put('/envelopes/' + invalidExpenseId1)
                 .expect(404);
-        });
-
-        it('should return a 400 status code when an envelope is deleted that has associated expenses', async () => {
-            throw new Error(`Need expense APIs updated before writing this test.`);
         });
     });
 });

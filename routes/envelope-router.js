@@ -4,7 +4,7 @@ const envelopeRouter = express.Router();
 
 // Import helper functions & repositories
 const { validEnvelope, convertEnvelopeToPlain } = require('../utils/utilities.js');
-const { getEnvelopes, getEnvelopeById, createEnvelope } = require('../repositories/envelopeRepositories.js');
+const { getEnvelopes, getEnvelopeById, createEnvelope, updateEnvelope, deleteEnvelope } = require('../repositories/envelopeRepositories.js');
 
 // Create a new stream to write to log file in this directory
 const fs = require('fs');
@@ -12,10 +12,8 @@ const path = require('path');
 const envelopeLogStream = fs.createWriteStream(path.join(__dirname, '..', 'logs', 'envelope-logs.txt'), { flags: 'a' });
 
 // Import and use envelopeId validation middleware
-/*
 const { envelopeIdValidator } = require('../middleware/parameter-middleware.js');
 envelopeRouter.param('envelopeId', envelopeIdValidator);
-*/
 
 // Nest the expense router for /:envelopeId/expenses
 const expenseRouter = require('../routes/expense-router.js');
@@ -73,28 +71,32 @@ envelopeRouter.post('/', async (req, res, next) => {
     }
 });
 
-/*
 // PUT /envelopes/:envelopeId
-envelopeRouter.put('/:envelopeId', (req, res, next) => {
-    const envelopeIndex = req.envelopeIndex;
-    const updatedEnvelope = req.body;
-    if (validEnvelope(req.envelope)) {
-        envelopeArray[envelopeIndex].envelopeName = updatedEnvelope.envelopeName;
-        envelopeArray[envelopeIndex].envelopeDescription = updatedEnvelope.envelopeDescription;
-        envelopeArray[envelopeIndex].budgetedValueUSD = updatedEnvelope.budgetedValueUSD;
-        envelopeArray[envelopeIndex].totalSpentUSD = updatedEnvelope.totalSpentUSD;
-        const plainEnvelope = convertEnvelopeToPlain(envelopeArray[envelopeIndex]);
-        res.send(plainEnvelope);
+envelopeRouter.put('/:envelopeId', async (req, res, next) => {
+    const updatedProperties = req.body;
+    if (validEnvelope(updatedProperties)) {
+        try {
+            const updatedEnvelope = await updateEnvelope(req.params.envelopeId, updatedProperties.envelopeName, updatedProperties.envelopeDescription, updatedProperties.totalAmountUSD);
+            const plainEnvelope = convertEnvelopeToPlain(updatedEnvelope);
+            res.send(plainEnvelope);
+        } catch (err) {
+            if (err.message === 'ID not in DB.' ||
+                err.message.indexOf('invalid input syntax for type integer') !== -1) {
+                res.status(404).send();
+            } else {
+                return next(err);
+            }
+        }
     } else {
         const validationErr = new Error('Please enter a valid envelope.');
         return next(validationErr); 
     }
 });
-*/
 
 // DELETE /envelopes/:envelopeId
-envelopeRouter.delete('/:envelopeId', (req, res, next) => {
+envelopeRouter.delete('/:envelopeId', async (req, res, next) => {
     try {
+        await deleteEnvelope(req.params.envelopeId);
         res.status(204).send();
     } catch (err) {
         return next(err);

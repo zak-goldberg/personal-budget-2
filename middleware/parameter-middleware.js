@@ -4,9 +4,24 @@ const { envelopeArray, expenseArray } = require('../test/the-database-lol.js');
 // Import envelope and expense id validator helper functions
 const { validEnvelopeId, validExpenseId } = require('../utils/utilities.js');
 
+// Import getEnvelopeById
+const { getEnvelopeById } = require('../repositories/envelopeRepositories.js');
+
 // envelopeId validation
 // add req.envelope, req.envelopeId, req.envelopeIndex
-const envelopeIdValidator = (req, res, next, id) => {
+const envelopeIdValidator = async (req, res, next, id) => {
+    try {
+        await getEnvelopeById(id);
+        next();
+    } catch (err) {
+        if (err.message === 'ID not in DB.' ||
+            err.message.indexOf('invalid input syntax for type integer') !== -1) {
+            res.status(404).send();
+        } else {
+            return next(err);
+        }
+    }
+    /*
     if (validEnvelopeId(Number(id))) {
         const arrayOfIds = envelopeArray.reduce((accumulator, currentValue) => {
             accumulator.push(currentValue.envelopeId);
@@ -20,6 +35,7 @@ const envelopeIdValidator = (req, res, next, id) => {
     } else {
         return next(new Error('Please provide a valid envelope id.'));
     }
+    */
 };
 
 // expenseId validation

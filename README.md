@@ -74,8 +74,7 @@ You will extend the Personal Budget API created in [Personal Budget, Part I](htt
     "envelopeId": 1, // Number, READ-ONLY
     "envelopeName": "Entertainment", // String
     "envelopeDescription": "Song and dance", // String
-    "budgetedValueUSD": 200, // Number
-    "totalSpentUSD": 2 // Number, Can't be updated by this API
+    "totalAmountUSD": "$200.00", // String formatted as currency (USD)
 }
 ```
 - deleteEnvelopeById - DELETE /envelopes/:envelope_id
@@ -132,7 +131,9 @@ You will extend the Personal Budget API created in [Personal Budget, Part I](htt
 ## Roadblocks & Learnings (Me)
 ### PostgreSQL
 - Don't use camel case for PostgreSQL item naming unless you hate yourself.
-- If a trigger runs AFTER DELETE on a base table to add a corresponding row in an audit table but the audit table has a foreign key constraint on the primary key from the base table, PostgreSQL will throw a foreign key violation error.
+- Be careful with DB constraints:
+  - I had `FOREIGN KEY` and `NOT NULL` constraints for the `envelope_id` column in my `envelope_audit` table, which made it impossible to delete records from the `envelopes` table.
+  - If a trigger runs AFTER DELETE on a base table to add a corresponding row in an audit table but the audit table has a foreign key constraint on the primary key from the base table, PostgreSQL will throw a foreign key violation error.
 
 ## TO-DO (Me)
 - Transition API documentation in ReadMe to Open API

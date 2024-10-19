@@ -1,13 +1,12 @@
 // Import in envelope and expense arrays
-const { envelopeArray, expenseArray } = require('./the-database-lol.js');
+const { envelopeArray, expenseArray } = require('../test/the-database-lol.js');
 
 // Helper function to validate envelope based on the schema
 const validEnvelope = (envelope) => {
       if (
           envelope.envelopeName && typeof envelope.envelopeName === 'string'
           && envelope.envelopeDescription && typeof envelope.envelopeDescription === 'string'
-          && envelope.budgetedValueUSD !== null && !Number.isNaN(Number(envelope.budgetedValueUSD))
-          && envelope.totalSpentUSD !== null && !Number.isNaN(Number(envelope.totalSpentUSD))
+          && envelope.totalAmountUSD !== null
       ) {
       return true;
     } else {
@@ -22,8 +21,7 @@ function convertEnvelopeToPlain(envelope) {
         plainEnvelope.envelopeId = envelope.envelopeId;
         plainEnvelope.envelopeName = envelope.envelopeName;
         plainEnvelope.envelopeDescription = envelope.envelopeDescription;
-        plainEnvelope.budgetedValueUSD = envelope.budgetedValueUSD;
-        plainEnvelope.totalSpentUSD = envelope.totalSpentUSD;
+        plainEnvelope.totalAmountUSD = envelope.totalAmountUSD;
         return plainEnvelope;
     } else {
         throw new Error('Failed to convert. Not a valid envelope.');
@@ -31,6 +29,7 @@ function convertEnvelopeToPlain(envelope) {
 };
 
 // Helper function to validate envelopeId
+/*
 const validEnvelopeId = (envelopeId) => {
     const arrayOfIds = envelopeArray.reduce((accumulator, currentValue) => {
         accumulator.push(currentValue.envelopeId);
@@ -40,6 +39,7 @@ const validEnvelopeId = (envelopeId) => {
     if (arrayOfIds.includes(Number(envelopeId))) return true;
     return false;
 }
+*/    
 
 // Helper function to getEnvelopeIndex
 const getEnvelopeIndex = (envelopeId) => {
@@ -118,4 +118,4 @@ function validExpenseId(expenseId) {
     return false;
 }
 
-module.exports = { validEnvelope, convertEnvelopeToPlain, validEnvelopeId, validTransferRequest, getEnvelopeIndex, getExpensesByEnvelopeId, validExpense, convertExpenseToPlain, validExpenseId }
+module.exports = { validEnvelope, convertEnvelopeToPlain, validTransferRequest, getEnvelopeIndex, getExpensesByEnvelopeId, validExpense, convertExpenseToPlain, validExpenseId }

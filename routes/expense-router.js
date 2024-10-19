@@ -3,24 +3,24 @@ const express = require('express');
 const expenseRouter = express.Router();
 
 // Import helper functions
-const { validEnvelope, convertEnvelopeToPlain, validEnvelopeId, getEnvelopeIndex, validExpense, convertExpenseToPlain, getExpensesByEnvelopeId, validExpenseId } = require('./utilities.js');
+const { validEnvelope, convertEnvelopeToPlain, validEnvelopeId, getEnvelopeIndex, validExpense, convertExpenseToPlain, getExpensesByEnvelopeId, validExpenseId } = require('../utils/utilities.js');
 
 // Create a new stream to write to file in this directory
 const fs = require('fs');
 const path = require('path');
-const expenseLogStream = fs.createWriteStream(path.join(__dirname, 'logs', 'expense-logs.txt'), { flags: 'a' });
+const expenseLogStream = fs.createWriteStream(path.join(__dirname, '..', 'logs', 'expense-logs.txt'), { flags: 'a' });
 
 // Import envelope array
-const { envelopeArray, expenseArray } = require('./the-database-lol.js');
+const { envelopeArray, expenseArray } = require('../test/the-database-lol.js');
 
 // Import envelope class definition
-const { Envelope, Expense } = require('./class-definitions.js');
+const { Envelope, Expense } = require('../models/class-definitions.js');
 
 // Import generic error handler
-const genericErrorHandler = require('./generic-error-handler.js');
+const genericErrorHandler = require('../middleware/generic-error-handler.js');
 
 // Import and use expenseId validator
-const { expenseIdValidator } = require('./parameter-middleware.js');
+const { expenseIdValidator } = require('../middleware/parameter-middleware.js');
 expenseRouter.param('expenseId', expenseIdValidator);
 
 // GET /expenses

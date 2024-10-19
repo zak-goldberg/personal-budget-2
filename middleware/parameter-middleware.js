@@ -1,8 +1,8 @@
 // Import envelope and expense array
-const { envelopeArray, expenseArray } = require('./the-database-lol.js');
+const { envelopeArray, expenseArray } = require('../test/the-database-lol.js');
 
 // Import envelope and expense id validator helper functions
-const { validEnvelopeId, validExpenseId } = require('./utilities.js');
+const { validEnvelopeId, validExpenseId } = require('../utils/utilities.js');
 
 // envelopeId validation
 // add req.envelope, req.envelopeId, req.envelopeIndex

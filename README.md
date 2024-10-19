@@ -17,7 +17,7 @@ You will extend the Personal Budget API created in [Personal Budget, Part I](htt
 ## Schemas (Me)
 ### Database
 - [PostgreSQL DB Diagram](https://dbdiagram.io/d/Personal-Budget-Part-2-670f078197a66db9a31ca699)
-### Envelopes
+### Envelope Object
 - envelopeId (Number) - *READ-ONLY*
 - envelopeName (String)
 - envelopeDescription (String)
@@ -35,7 +35,7 @@ You will extend the Personal Budget API created in [Personal Budget, Part I](htt
     "totalSpentUSD": 2
 }
 ```
-### Expenses
+### Expense Object
 - expenseId (Number) - *READ-ONLY*
 - expenseName (String)
 - expenseDescription (String)
@@ -136,3 +136,5 @@ You will extend the Personal Budget API created in [Personal Budget, Part I](htt
 - If a trigger runs AFTER DELETE on a base table to add a corresponding row in an audit table but the audit table has a foreign key constraint on the primary key from the base table, PostgreSQL will throw a foreign key violation error.
 
 ## TO-DO (Me)
+- Transition API documentation in ReadMe to Open API
+- Change DB connection details to environmental variables

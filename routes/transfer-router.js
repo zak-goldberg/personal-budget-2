@@ -3,18 +3,18 @@ const express = require('express');
 const transferRouter = express.Router();
 
 // Import helper functions
-const { validEnvelope, convertEnvelopeToPlain, validTransferRequest, getEnvelopeIndex } = require('./utilities.js');
+const { validEnvelope, convertEnvelopeToPlain, validTransferRequest, getEnvelopeIndex } = require('../utils/utilities.js');
 
 // Create a new stream to write to file in this directory
 const fs = require('fs');
 const path = require('path');
-const transferLogStream = fs.createWriteStream(path.join(__dirname, 'logs', 'transfer-logs.txt'), { flags: 'a' });
+const transferLogStream = fs.createWriteStream(path.join(__dirname, '..', 'logs', 'transfer-logs.txt'), { flags: 'a' });
 
 // Import envelope array
-const { envelopeArray } = require('./the-database-lol.js');
+const { envelopeArray } = require('../test/the-database-lol.js');
 
 // Import generic error handler
-const genericErrorHandler = require('./generic-error-handler.js');
+const genericErrorHandler = require('../middleware/generic-error-handler.js');
 
 // POST /transfers
 transferRouter.post('/', (req, res, next) => {

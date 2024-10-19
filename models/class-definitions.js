@@ -1,18 +1,30 @@
 class Envelope {
-    static lastEnvelopeId = 0;
-    
-    constructor(envelopeName, envelopeDescription, budgetedValueUSD, totalSpentUSD) {
-        Envelope.lastEnvelopeId += 1;        
-        this._envelopeId = Envelope.lastEnvelopeId;
+    constructor(envelopeId, envelopeName, envelopeDescription, totalAmountUSD) {
+        this._envelopeId = envelopeId;
         this._envelopeName = envelopeName;
         this._envelopeDescription = envelopeDescription;
-        this._budgetedValueUSD = budgetedValueUSD;
-        this._totalSpentUSD = totalSpentUSD;
+        this._totalAmountUSD = totalAmountUSD;
     }
 
-// Getter for envelope id (read-only)
-    get envelopeId () {
+    // Getter, setter, and validation for envelopeId
+    get envelopeId() {
         return this._envelopeId;
+    }
+
+    validateEnvelopeId(id) {
+        if (Number(id) === NaN || Number(id) <= 0) {
+            throw new Error('Please enter a valid id for the corresponding envelope.')
+        };
+    }
+
+    set envelopeId(id) {
+        try {
+            this.validateEnvelopeId(id);
+            this._envelopeId = Number(id);
+        } catch (err) {
+            console.error('Validation failed:', err.message);
+            throw err;
+        }
     }
 
 // Getter, setter, and validation method for _envelopeName    
@@ -58,48 +70,23 @@ class Envelope {
     }
 
 // Getter, setter, and validation for budgetedValueUSD
-    get budgetedValueUSD() {
-        return this._budgetedValueUSD;
+    get totalAmountUSD() {
+        return this._totalAmountUSD;
     }
 
-    validateBudget(value) {
-        if (Number(value) === NaN) throw new Error('Please enter a valid number value for the envelope budget.');
+    validateTotalAmount(value) {
+        // TO-DO: add regex to validate currency string
+        return value;
     }
 
-    set budgetedValueUSD(value) {
+    set totalAmountUSD(value) {
         try {
-            this.validateBudget(value);
+            this.validateTotalAmount(value);
             this._budgetedValueUSD = Number(value);
         } catch (err) {
             console.error('Validation failed:', err.message);
             throw err;
         }
-    }
-
-// Getter, setter, and validation for totalSpentUSD
-    get totalSpentUSD() {
-        return this._totalSpentUSD;
-    }
-
-    validateTotalSpent(value) {
-        if (Number(value) === NaN) throw new Error('Please enter a valid number value for the envelope budget.');
-        if (Number(value) > this.budgetedValueUSD) throw new Error(`Total spent for the envelope must be less than budgeted value: ${this.budgetedValueUSD}.`);
-        if (Number(value) < 0) throw new Error('Total spent must be greater than 0 USD.');
-    }
-
-    set totalSpentUSD(value) {
-        try {
-            this.validateTotalSpent(value);
-            this._totalSpentUSD = Number(value);
-        } catch (err) {
-            console.error('Validation failed:', err.message);
-            throw err;
-        }
-    }
-
-    // Getter that computes remaining budget for the envelope
-    get remainingBudget() {
-        return Number(this.budgetedValueUSD) - Number(this.totalSpentUSD);
     }
 };
 
@@ -176,27 +163,6 @@ class Expense {
         try {
             this.validateExpenseAmount(value);
             this._expenseAmountUSD = Number(value);
-        } catch (err) {
-            console.error('Validation failed:', err.message);
-            throw err;
-        }
-    }
-
-    // Getter, setter, and validation for envelopeId
-    get envelopeId() {
-        return this._envelopeId;
-    }
-
-    validateEnvelopeId(id) {
-        if (Number(id) === NaN || Number(id) <= 0) {
-            throw new Error('Please enter a valid id for the corresponding envelope.')
-        };
-    }
-
-    set envelopeId(id) {
-        try {
-            this.validateEnvelopeId(id);
-            this._envelopeId = Number(id);
         } catch (err) {
             console.error('Validation failed:', err.message);
             throw err;

@@ -14,12 +14,12 @@ app.use(morgan('dev'));
 const port = 80;
 
 // Import class defintions
-const { Envelope, Expense } = require('./class-definitions');
+const { Envelope, Expense } = require('./models/class-definitions');
 
 // Import envelope and expese routers and arrays
-const { envelopeRouter } = require('./envelope-router.js');
-const { transferRouter } = require('./transfer-router.js');
-const expenseRouter = require('./expense-router.js');
+const { envelopeRouter } = require('./routes/envelope-router.js');
+const { transferRouter } = require('./routes/transfer-router.js');
+const expenseRouter = require('./routes/expense-router.js');
 
 // Import and use parameter middleware functions
 // const { expenseIdValidator, envelopeIdValidator } = require('./parameter-middleware.js');
@@ -34,3 +34,5 @@ app.use('/expenses', expenseRouter);
 app.listen(port, (req, res, next) => {
   console.log(`Server started. Listening on PORT ${port}.`);
 });
+
+module.exports = app;

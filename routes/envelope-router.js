@@ -2,43 +2,62 @@
 const express = require('express');
 const envelopeRouter = express.Router();
 
-// Import helper functions
-const { validEnvelope, convertEnvelopeToPlain } = require('./utilities.js');
+// Import helper functions & repositories
+const { validEnvelope, convertEnvelopeToPlain } = require('../utils/utilities.js');
+const { getEnvelopes, getEnvelopeById } = require('../repositories/envelopeRepositories.js');
 
 // Create a new stream to write to log file in this directory
 const fs = require('fs');
 const path = require('path');
-const envelopeLogStream = fs.createWriteStream(path.join(__dirname, 'logs', 'envelope-logs.txt'), { flags: 'a' });
-
-// Import envelope array
-const { envelopeArray } = require('./the-database-lol.js');
+const envelopeLogStream = fs.createWriteStream(path.join(__dirname, '..', 'logs', 'envelope-logs.txt'), { flags: 'a' });
 
 // Import and use envelopeId validation middleware
-const { envelopeIdValidator } = require('./parameter-middleware.js');
+/*
+const { envelopeIdValidator } = require('../middleware/parameter-middleware.js');
 envelopeRouter.param('envelopeId', envelopeIdValidator);
+*/
 
 // Nest the expense router for /:envelopeId/expenses
-const expenseRouter = require('./expense-router.js');
+const expenseRouter = require('../routes/expense-router.js');
 envelopeRouter.use('/:envelopeId/expenses', expenseRouter);
 
 // Import envelope class definition
-const { Envelope } = require('./class-definitions.js');
+const { Envelope } = require('../models/class-definitions.js');
 
 // Import generic error handler
-const genericErrorHandler = require('./generic-error-handler.js');
+const genericErrorHandler = require('../middleware/generic-error-handler.js');
 
 // GET /envelopes
-envelopeRouter.get('/', (req, res, next) => {
-    const plainEnvelopeArray = envelopeArray.map((envelope) => convertEnvelopeToPlain(envelope));
-    res.send(plainEnvelopeArray);
+envelopeRouter.get('/', async (req, res, next) => {
+    try {
+        const envelopeArray = await getEnvelopes();
+        const plainEnvelopeArray = envelopeArray.map((envelope) => convertEnvelopeToPlain(envelope));
+        res.send(plainEnvelopeArray);
+    } catch (err) {
+        res.status(500).send();
+    }
 });
 
 // GET /envelopes/:envelopeId
-envelopeRouter.get('/:envelopeId', (req, res, next) => {
-    const plainEnvelope = convertEnvelopeToPlain(req.envelope);
-    res.send(plainEnvelope);
+envelopeRouter.get('/:envelopeId', async (req, res, next) => {
+    try {
+        const requestedEnvelope = await getEnvelopeById(req.params.envelopeId);
+        // console.log(`req.params.envelopeId: ${req.params.envelopeId}`);
+        // console.log(`requestedEnvelope: ${JSON.stringify(requestedEnvelope)}`)
+        const plainEnvelope = convertEnvelopeToPlain(requestedEnvelope);
+        res.send(plainEnvelope);
+    } catch (err) {
+        if (err.message === 'ID not in DB.' ||
+            err.message.indexOf('invalid input syntax for type integer') !== -1) {
+            res.status(404).send();
+        } else {
+            res.status(500).send();
+        }
+    }
+
 });
 
+/*
 // POST /envelopes
 envelopeRouter.post('/', (req, res, next) => {
     const envelopeRequest = req.body;
@@ -80,6 +99,7 @@ envelopeRouter.delete('/:envelopeId', (req, res, next) => {
         return next(err);
     }
 });
+*/
 
 // Error handler
 envelopeRouter.use(genericErrorHandler);

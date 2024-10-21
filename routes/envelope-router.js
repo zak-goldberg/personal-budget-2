@@ -5,6 +5,7 @@ const envelopeRouter = express.Router();
 // Import helper functions & repositories
 const { validEnvelope, convertEnvelopeToPlain } = require('../utils/utilities.js');
 const { getEnvelopes, getEnvelopeById, createEnvelope, updateEnvelope, deleteEnvelope } = require('../repositories/envelopeRepositories.js');
+const { getExpensesByEnvelopeId } = require('../repositories/expenseRepositories.js');
 
 // Create a new stream to write to log file in this directory
 const fs = require('fs');
@@ -96,11 +97,18 @@ envelopeRouter.put('/:envelopeId', async (req, res, next) => {
 // DELETE /envelopes/:envelopeId
 envelopeRouter.delete('/:envelopeId', async (req, res, next) => {
     try {
-        await deleteEnvelope(req.params.envelopeId);
-        res.status(204).send();
+        await getExpensesByEnvelopeId(req.envelopeId);
     } catch (err) {
-        return next(err);
+        // console.error(err.stack);
+        if (err.message === 'No expenses for envelopeId.') {
+            await deleteEnvelope(req.envelopeId);
+            return res.status(204).send();
+        } else {
+            return next(err);
+        }
     }
+    const expenseError = new Error('Envelopes with associated expenses can\'t be deleted');
+    return next(expenseError);
 });
 
 // Error handler

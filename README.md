@@ -95,9 +95,8 @@ You will extend the Personal Budget API created in [Personal Budget, Part I](htt
 ``` JSON
 // Sample request body for createExpense
 {
-  "expenseName": "Waffles", // String
   "expenseDescription": "Really tasty waffles.", // String
-  "expenseAmountUSD": 5, // Number
+  "expenseAmountUSD": "$50.00", // String formatted as currency
   "envelopeId": 1 // Number
 }
 ```

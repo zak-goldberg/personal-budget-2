@@ -4,14 +4,16 @@ const { envelopeArray, expenseArray } = require('../test/the-database-lol.js');
 // Import envelope and expense id validator helper functions
 const { validEnvelopeId, validExpenseId } = require('../utils/utilities.js');
 
-// Import getEnvelopeById
+// Import getEnvelopeById & getExpenseByExpenseId
 const { getEnvelopeById } = require('../repositories/envelopeRepositories.js');
+const { getExpenseByExpenseId } = require('../repositories/expenseRepositories.js');
 
 // envelopeId validation
 // add req.envelope, req.envelopeId, req.envelopeIndex
 const envelopeIdValidator = async (req, res, next, id) => {
     try {
         await getEnvelopeById(id);
+        req.envelopeId = id;
         next();
     } catch (err) {
         if (err.message === 'ID not in DB.' ||
@@ -43,11 +45,13 @@ const expenseIdValidator = async (req, res, next, id) => {
     try {
         // Call getExpenseByExpenseId with parameter, move to next if no error
         await getExpenseByExpenseId(id);
+        req.expenseId = id;
         next();
     } catch (err) {
         // Change status code to 404 based on specific error messages
         if (err.message === 'ID not in DB.' ||
-            err.message.indexOf('invalid input syntax for type integer') !== -1) {
+            err.message.indexOf('invalid input syntax for type integer' !== -1) ||
+            err.message.indexOf('is out of range for type integer' !== -1)) {
             res.status(404).send();
         } else {
         // Otherwise pass error to the generic error handler    

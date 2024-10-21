@@ -5,6 +5,9 @@ const chai = require('chai');
 const expect = chai.expect;
 const { validEnvelopeId } = require('../utils/utilities');
 
+// import validExpenseObject from expense-tests
+const { validExpenseObject } = require('./expense-tests');
+
 describe('envelopeRouter', () => {
     // Initializing variables used in envelopeRouter tests
     const validEnvelopeId = 1;
@@ -232,27 +235,17 @@ describe('envelopeRouter', () => {
 
     describe('DELETE /envelopes/:envelopeId', () => {
         let newEnvelopeId;
+        let beforeEachResponse;
         
         beforeEach( async () => {
-            // List all envelopes
-            response = await request(app)
+            // Create a new envelope
+            beforeEachResponse = await request(app)
                 .post('/envelopes')
                 .send(validEnvelopeObject)
                 .expect(200);
             
-            // Get the id of the last envelope in the list
-            newEnvelopeId = response.body.envelopeId;
-        });
-
-        afterEach( async () => {
-            // console.log(JSON.stringify(lastEnvelope));
-            // Add the removed envelope back
-            /*
-            await request(app)
-                .post('/envelopes')
-                .send(lastEnvelope)
-                .expect(200);
-            */    
+            // Get id for created envelope
+            newEnvelopeId = beforeEachResponse.body.envelopeId;
         });
 
         it('should return a 200 status code when passed a valid input', async () => {
@@ -286,10 +279,49 @@ describe('envelopeRouter', () => {
             await request(app)
                 .put('/envelopes/' + invalidEnvelopeId2)
                 .expect(404);
+
+            // Teardown (from beforeEach)
+            // Remove created envelope
+            await request(app)
+            .delete('/envelopes/' + newEnvelopeId)
+            .expect(204);
         });
 
         it('should return a 400 status code when an envelope is deleted that has associated expenses', async () => {
-            throw new Error(`Need expense APIs updated before writing this test.`);
+            // Setup
+            // Update validExpenseObject envelopeId to newEnvelopeId
+            validExpenseObject.envelopeId = newEnvelopeId;
+
+            // Create an expense associated with newEnvelopeId
+            // console.log(`In envelope-tests: validExpenseObject: ${JSON.stringify(validExpenseObject)}`);
+            const newAsscExpense = await request(app)
+                .post('/envelopes/' + newEnvelopeId + '/expenses')
+                .send(validExpenseObject)
+                .expect(200);
+
+            const newAsscExpenseId = newAsscExpense.body.expenseId;
+
+            // Update validExpenseObject envelopeId to newEnvelopeId
+            validExpenseObject.envelopeId = newEnvelopeId;
+            console.log(`newEnvelopeId: ${newEnvelopeId}`);
+            console.log(`validExpenseObject: ${JSON.stringify(validExpenseObject)}`);
+            
+            // Exercise & Verify
+            // Try to delete newEnvelopeId, expect a 400 since there is an associated expense
+            await request(app)
+                .delete('/envelopes/' + newEnvelopeId)
+                .expect(400);
+
+            // Teardown
+            // Remove the associated expense
+            await request(app)
+                .delete('/envelopes/' + newEnvelopeId + '/expenses/' + newAsscExpenseId)
+                .expect(204);
+
+            // Remove created envelope (from before-each)
+            await request(app)
+            .delete('/envelopes/' + newEnvelopeId)
+            .expect(204);
         });
     });
 });

@@ -97,7 +97,6 @@ function convertExpenseToPlain(expense) {
     if (validExpense(expense)) {
         const plainExpense = {};
         plainExpense.expenseId = expense.expenseId;
-        plainExpense.expenseName = expense.expenseName;
         plainExpense.expenseDescription = expense.expenseDescription;
         plainExpense.expenseAmountUSD = expense.expenseAmountUSD;
         plainExpense.envelopeId = expense.envelopeId;

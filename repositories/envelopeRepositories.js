@@ -41,6 +41,7 @@ const createEnvelope = async (envelopeName, envelopeDescription, totalAmountUSD)
         await pgClient.query('INSERT INTO envelopes (name, description, total_amount_usd) VALUES ($1, $2, $3);', 
             [envelopeName, envelopeDescription, totalAmountUSD]
         );
+        // TO-DO: Remove this select query and using the RETURNING clause in the above query
         const res = await pgClient.query('SELECT id, name, description, total_amount_usd FROM envelopes WHERE name = $1 AND description = $2 AND total_amount_usd = $3;',
             [envelopeName, envelopeDescription, totalAmountUSD]
         );

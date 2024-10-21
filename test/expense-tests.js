@@ -3,18 +3,17 @@ const mocha = require('mocha');
 const request = require('supertest');
 const chai = require('chai');
 const expect = chai.expect;
+let validExpenseObject;
 
 describe('expenseRouter', () => {
     // Initialize variables that will be used in tests below
     const validEnvelopeId = 1;
-    const validExpenseObject = {
-        expenseName: "Waffles",
-        expenseDescription: "Really tasty waffles.",
+    validExpenseObject = {
+        expenseDescription: "Waffles.",
         expenseAmountUSD: "$5.00",
         envelopeId: validEnvelopeId
     };
     const validExpenseObject2 = {
-        expenseName: "CrispyWaffles",
         expenseDescription: "Really crispy waffles.",
         expenseAmountUSD: "$6.00",
         envelopeId: validEnvelopeId
@@ -28,13 +27,14 @@ describe('expenseRouter', () => {
     };
 
     before(async () => {
-        // Get valid expenses
+        // Create a new expense
         const response = await request(app)
-            .post('/envelopes/' + validEnvelopeId + '/expenses/')
+            .post('/envelopes/' + validEnvelopeId + '/expenses')
             .send(validExpenseObject)
             .expect(200);
 
         newExpenseId = response.body.expenseId;
+        console.log(`before - describe expenseRouter - newExpenseId: ${newExpenseId}`);
     });
 
     describe('GET /envelopes/:envelope_id/expenses', () => {
@@ -64,7 +64,7 @@ describe('expenseRouter', () => {
             expect(response.body.length).to.be.greaterThan(0);
         });
         
-        it('should return an array of plain envelope objects', async () => {
+        it('should return an array of plain expense objects', async () => {
             // Exercise
             const response = await request(app)
                 .get('/envelopes/' + validEnvelopeId + '/expenses')
@@ -72,7 +72,7 @@ describe('expenseRouter', () => {
 
             // Verify
             response.body.forEach((item) => {
-                expect(item).to.have.all.keys('expenseId', 'expenseName', 'expenseDescription', 'expenseAmountUSD', 'envelopeId');
+                expect(item).to.have.all.keys('expenseId', 'expenseDescription', 'expenseAmountUSD', 'envelopeId');
             });               
         });
     });
@@ -84,23 +84,23 @@ describe('expenseRouter', () => {
                 .expect(200);
         });
         
-        it('should return an envelope when passed a valid id', async () => {
+        it('should return an expense when passed a valid id', async () => {
             // Exercise
             const response = await request(app)
                 .get('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId)
                 .expect(200);
 
             // Verify
-            expect(response.body).to.have.all.keys('envelopeId', 'envelopeName', 'envelopeDescription', 'totalAmountUSD');
+            expect(response.body).to.have.all.keys('expenseId', 'expenseDescription', 'expenseAmountUSD', 'envelopeId');
         });
 
         it('should return a 404 status code when passed an invalid id', async () => {
             await request(app)
-                .get('/envelopes/' + invalidExpenseId1)
+                .get('/envelopes/' + validEnvelopeId + '/expenses/' + invalidExpenseId1)
                 .expect(404);
 
             await request(app)
-                .get('/envelopes/' + invalidExpenseId2)
+                .get('/envelopes/' + validEnvelopeId + '/expenses/' + invalidExpenseId2)
                 .expect(404);
         });
     });
@@ -114,9 +114,9 @@ describe('expenseRouter', () => {
                 .expect(200);
         });
 
-        it('should persist a valid new envelope in the database', async () => {
+        it('should persist a valid new expense in the database', async () => {
             // Exercise
-            // Create validEnvelopeObject
+            // Create new expense associated with validEnvelopeId
             const responsePost = await request(app)
             .post('/envelopes/' + validEnvelopeId + '/expenses')
             .send(validExpenseObject)
@@ -124,7 +124,7 @@ describe('expenseRouter', () => {
             // console.log(responsePost.body);    
 
             // Save new id
-            const newExpenseId2 = responsePost.body.envelopeId;
+            const newExpenseId2 = responsePost.body.expenseId;
             // console.log(`newEnvelopeId: ${newEnvelopeId}`);
             // console.log(`typeof newEnvelopeId: ${typeof newEnvelopeId}`);
 
@@ -147,6 +147,9 @@ describe('expenseRouter', () => {
             await request(app)
                 .delete('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId2)
                 .expect(204);
+
+            // Remove expenseId from validExpenseObject
+            delete validExpenseObject.expenseId;
         });
 
         it('should return a 400 status code when passed an invalid input', async () => {
@@ -162,23 +165,32 @@ describe('expenseRouter', () => {
         // Create variable to store expense before updating it
         let originalExpenseObject;
         
-        beforeEach( async () => {
+        before( async () => {
+            // Add expenseId to validExpenseObject2 since it is needed for PUT calls
+            validExpenseObject2.expenseId = newExpenseId;
+
             // Get current value for newExpenseId before updating it
             const beforeResponse = await request(app)
-                .get('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId)
-                .expect(200);
+            .get('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId)
+            .expect(200);
 
             originalExpenseObject = beforeResponse.body;
-            // Remove expenseId property
-            delete originalExpenseObject.expenseId;
         });
 
-        afterEach( async () => {
+        afterEach( async () => {          
             // Return validExpenseId to original value
             await request(app)
                 .put('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId)
                 .send(originalExpenseObject)
                 .expect(200);
+        });
+
+        after(() => {
+            // Remove expenseId from validExpenseObject2
+            delete validExpenseObject2.expenseId;
+            
+            // Remove expenseId from originalExpenseObject
+            delete originalExpenseObject.expenseId;
         });
         
         it('should return a 200 status code when passed a valid input', async () => {
@@ -238,6 +250,19 @@ describe('expenseRouter', () => {
                 .send(invalidExpenseObject)
                 .expect(400);
         });
+
+        it('should return a 400 status code if the expenseId in the path doesn\'t match the expenseId in the body.', async () => {
+            // Verify
+            await request(app)
+                .put('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId)
+                .send({
+                    expenseId: newExpenseId + 1,
+                    expenseDescription: "Cute turtles.",
+                    expenseAmountUSD: "$8.00",
+                    envelopeId: validEnvelopeId
+                })
+                .expect(400);
+        });
     });
 
     describe('DELETE /envelopes/:envelope_id/expenses/:expense_id', () => {
@@ -245,12 +270,12 @@ describe('expenseRouter', () => {
         
         beforeEach( async () => {
             // Create new expense 2
-            const response = await request(app)
+            const beforeEachResponse = await request(app)
                 .post('/envelopes/' + validEnvelopeId + '/expenses/')
                 .send(validExpenseObject)
                 .expect(200);
 
-            newExpenseId2 = response.body.expenseId;
+            newExpenseId2 = beforeEachResponse.body.expenseId;
         });
 
         it('should return a 200 status code when passed a valid input', async () => {
@@ -277,13 +302,15 @@ describe('expenseRouter', () => {
             // Exercise
             // Invalid ID number
             await request(app)
-                .put('/envelopes/' + invalidExpenseId1)
+                .put('/envelopes/' + validEnvelopeId + '/expenses/' + invalidExpenseId1)
                 .expect(404);
 
             // Invalid ID string
             await request(app)
-                .put('/envelopes/' + invalidExpenseId1)
+                .put('/envelopes/' + validEnvelopeId + '/expenses/' + invalidExpenseId2)
                 .expect(404);
         });
     });
 });
+
+module.exports = { validExpenseObject };

@@ -1,5 +1,5 @@
 const genericErrorHandler = (err, req, res, next) => {
-    console.error(err.type, err.message);
+    console.error(err.stack);
     res.status(400).send(err.message);
 };
 

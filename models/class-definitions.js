@@ -170,6 +170,14 @@ class Expense {
             throw err;
         }
     }
+
+    get envelopeId () {
+        return this._envelopeId;
+    }
+
+    set envelopeId (id) {
+        this._envelopeId = id;
+    }
 };
 
 module.exports = { Envelope, Expense };

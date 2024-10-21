@@ -85,7 +85,7 @@ You will extend the Personal Budget API created in [Personal Budget, Part I](htt
 {
   "sourceEnvelopeId": 1, // Number,
   "targetEnvelopeId": 2, // Number,
-  "transferAmount": 500 // Number (less than source envelope budgetedValueUSD)
+  "transferAmount": "$500.00" // String formatted as currency (USD)
 }
 ```
 ### Expenses

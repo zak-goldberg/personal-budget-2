@@ -3,7 +3,6 @@ const mocha = require('mocha');
 const request = require('supertest');
 const chai = require('chai');
 const expect = chai.expect;
-const { validEnvelopeId } = require('../utils/utilities');
 
 // import validExpenseObject from expense-tests
 const { validExpenseObject } = require('./expense-tests');

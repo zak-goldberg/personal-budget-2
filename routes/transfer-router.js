@@ -2,8 +2,9 @@
 const express = require('express');
 const transferRouter = express.Router();
 
-// Import helper functions
+// Import helper functions & envelope repository functions
 const { validEnvelope, convertEnvelopeToPlain, validTransferRequest, getEnvelopeIndex } = require('../utils/utilities.js');
+const { updateEnvelope } = require('../repositories/envelopeRepositories.js');
 
 // Create a new stream to write to file in this directory
 const fs = require('fs');

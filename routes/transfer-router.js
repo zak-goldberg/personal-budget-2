@@ -3,8 +3,8 @@ const express = require('express');
 const transferRouter = express.Router();
 
 // Import helper functions & envelope repository functions
-const { validEnvelope, convertEnvelopeToPlain, validTransferRequest, getEnvelopeIndex } = require('../utils/utilities.js');
-const { updateEnvelope } = require('../repositories/envelopeRepositories.js');
+const { validEnvelope, convertEnvelopeToPlain, validTransferRequest, getEnvelopeIndex, currencyArithmetic } = require('../utils/utilities.js');
+const { updateEnvelope, getEnvelopeById } = require('../repositories/envelopeRepositories.js');
 
 // Create a new stream to write to file in this directory
 const fs = require('fs');
@@ -18,27 +18,44 @@ const { envelopeArray } = require('../test/the-database-lol.js');
 const genericErrorHandler = require('../middleware/generic-error-handler.js');
 
 // POST /transfers
-transferRouter.post('/', (req, res, next) => {
-// Validate request
+transferRouter.post('/', async (req, res, next) => {
+    // TO-DO: add some kind of auto-rollback mechanism if one part of the transfer is unsuccesful
     try {
-    // Update the source + target as a transaction
-        validTransferRequest(req.body);
-        const { sourceEnvelopeId, targetEnvelopeId, transferAmount } = req.body;
-        const sourceEnvelopeIndex = getEnvelopeIndex(sourceEnvelopeId);
-        const targetEnvelopeIndex = getEnvelopeIndex(targetEnvelopeId);
-        envelopeArray[sourceEnvelopeIndex].budgetedValueUSD -= Number(transferAmount);
-        envelopeArray[targetEnvelopeIndex].budgetedValueUSD += Number(transferAmount);
-        const responseArray = [
-            convertEnvelopeToPlain(envelopeArray[sourceEnvelopeIndex]),
-            convertEnvelopeToPlain(envelopeArray[targetEnvelopeIndex])
-        ];
-    // Send back an array with the source and target objects
-        res.send(responseArray);
-    } catch(err) {
-        // console.error(err.type, err.message);
-        throw err;
-    }
-});
+            // Validate request body
+            validTransferRequest(req.body);
+            // Update the source + target as a transaction
+            const { sourceEnvelopeId, targetEnvelopeId, transferAmount } = req.body;
+            // console.log(`sourceEnvelopeId: ${sourceEnvelopeId}`);
+            // console.log(`targetEnvelopeId: ${targetEnvelopeId}`);
+            // GET source envelope
+            const sourceEnvelope = await getEnvelopeById(sourceEnvelopeId);
+            // GET target envelope
+            const targetEnvelope = await getEnvelopeById(targetEnvelopeId);
+            // Update the source envelope
+            const updatedSourceEnvelope = await updateEnvelope(
+                sourceEnvelopeId,
+                sourceEnvelope.envelopeName,
+                sourceEnvelope.envelopeDescription,
+                currencyArithmetic.subtract(sourceEnvelope.totalAmountUSD, transferAmount)
+            );
+            // Update the target envelope
+            const updatedTargetEnvelope = await updateEnvelope(
+                targetEnvelopeId,
+                targetEnvelope.envelopeName,
+                targetEnvelope.envelopeDescription,
+                currencyArithmetic.add(targetEnvelope.totalAmountUSD, transferAmount)
+            );
+            // Construct response body
+            const responseArray = [
+                convertEnvelopeToPlain(updatedSourceEnvelope),
+                convertEnvelopeToPlain(updatedTargetEnvelope)
+            ];
+            // Send a succesful request
+            res.status(200).send();
+        } catch (err) {
+            return next(err);
+        }
+    });
 
 // Error handler
 transferRouter.use(genericErrorHandler);

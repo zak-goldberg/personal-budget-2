@@ -1,6 +1,31 @@
 // Import in envelope and expense arrays
 const { envelopeArray, expenseArray } = require('../test/the-database-lol.js');
 
+// Import getEnvelopeById repository function
+const { getEnvelopeById } = require('../repositories/envelopeRepositories.js');
+
+// Convert currency string to number
+const parseCurrency = (currencyStr) => {
+    // Remove currency symbol, commas and whitespace
+    const numStr = currencyStr.replace('$', '');
+    // Convert to number, handles negative values too
+    return parseFloat(numStr);
+};
+
+// Format number as currency string
+const formatCurrency = (num) => {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+    }).format(num);
+};
+
+// Arithmetic operations on currency strings
+const currencyArithmetic = {
+    add: (a, b) => formatCurrency(parseCurrency(a) + parseCurrency(b)),
+    subtract: (a, b) => formatCurrency(parseCurrency(a) - parseCurrency(b)),
+    };
+
 // Helper function to validate envelope based on the schema
 const validEnvelope = (envelope) => {
       if (
@@ -52,24 +77,27 @@ const getEnvelopeIndex = (envelopeId) => {
 }
 
 // Helper function to validate transfer request
-const validTransferRequest = (transferReq) => {
+const validTransferRequest = async (transferReq) => {
     const sourceEnvelopeId = transferReq.sourceEnvelopeId;
     const targetEnvelopeId = transferReq.targetEnvelopeId;
     const transferAmount = transferReq.transferAmount;
-    if (!validEnvelopeId(Number(sourceEnvelopeId))) throw new Error('Please enter a valid source envelope id.');
-    if (!validEnvelopeId(Number(targetEnvelopeId))) throw new Error('Please enter a valid target envelope id.');
-    if (Number.isNaN(Number(transferAmount))) throw new Error('Please enter a valid number for the transfer amount.');
-    const arrayOfIds = envelopeArray.reduce((accumulator, currentValue) => {
-        accumulator.push(currentValue.envelopeId);
-        return(accumulator);
-    }, []);
-    const sourceEnvelopeIndex = arrayOfIds.indexOf(Number(sourceEnvelopeId));
-    const sourceBudget = envelopeArray[sourceEnvelopeIndex].budgetedValueUSD;
-    if (Number(transferAmount) > Number(sourceBudget)) throw new Error('Transfer amount is greater than source budget.');
+    let sourceEnvelope;
+    try {
+        sourceEnvelope = await getEnvelopeById(sourceEnvelopeId);
+    } catch (err) {
+        throw err;
+    }
+    try {
+        await getEnvelopeById(targetEnvelopeId)
+    } catch (err) {
+        throw err;
+    }
+    if (parseCurrency(transferAmount) >= parseCurrency(sourceEnvelope.totalAmountUSD)) throw new Error('Transfer amount is greater than source budget.');
     return true;
 };
 
 // Helper function to get expense by envelope Id
+/*
 const getExpensesByEnvelopeId = (envelopeId) => {
     if (validEnvelopeId(Number(envelopeId))) {
         const filteredExpenses = expenseArray.filter((expense => Number(expense.envelopeId) === Number(envelopeId)));
@@ -78,6 +106,7 @@ const getExpensesByEnvelopeId = (envelopeId) => {
         throw new Error('Please enter a valid envelope id.');
     }
 };
+*/
 
 // Helper function to validate a new expense object
 const validExpense = (expense) => {
@@ -116,4 +145,4 @@ function validExpenseId(expenseId) {
     return false;
 }
 
-module.exports = { validEnvelope, convertEnvelopeToPlain, validTransferRequest, getEnvelopeIndex, getExpensesByEnvelopeId, validExpense, convertExpenseToPlain, validExpenseId }
+module.exports = { validEnvelope, convertEnvelopeToPlain, validTransferRequest, getEnvelopeIndex, validExpense, convertExpenseToPlain, validExpenseId, currencyArithmetic };

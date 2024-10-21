@@ -62,27 +62,20 @@ const createEnvelope = async (envelopeName, envelopeDescription, totalAmountUSD)
 const updateEnvelope = async (envelopeId, envelopeName, envelopeDescription, totalAmountUSD) => {
     try {
         // Query to update the database based on the given inputs
-        await pgClient.query('UPDATE envelopes SET name = $1, description = $2, total_amount_usd = $3 WHERE id = $4;', 
+        const updatedEnvelopeRes = await pgClient.query('UPDATE envelopes SET name = $1, description = $2, total_amount_usd = $3 WHERE id = $4 RETURNING id, name, description, total_amount_usd;', 
             [envelopeName, envelopeDescription, totalAmountUSD, envelopeId]
         );
-        
-        // Fetch the updated row from the DB
-        const res = await pgClient.query('SELECT id, name, description, total_amount_usd FROM envelopes WHERE id = $1;',
-            [envelopeId]
-        );
         // Check to see if there are any rows in the response, if not throw an error
-        if (res.rows.length === 0) throw new Error('ID not in DB.');
+        if (updatedEnvelopeRes.rows.length === 0) throw new Error('ID not in DB.');
         // Convert the fetched row into an instance of Envelope
-        const resultObject = res.rows[0];
-        requestedEnvelope = new Envelope (
-            resultObject.id,
-            resultObject.name,
-            resultObject.description,
-            resultObject.total_amount_usd
+        const updatedEnvelope = new Envelope (
+            updatedEnvelopeRes.rows[0].id,
+            updatedEnvelopeRes.rows[0].name,
+            updatedEnvelopeRes.rows[0].description,
+            updatedEnvelopeRes.rows[0].total_amount_usd
         );
-        return requestedEnvelope;
+        return updatedEnvelope;
     } catch (err) {
-        // console.error(err.stack);
         throw err;
     }
 };

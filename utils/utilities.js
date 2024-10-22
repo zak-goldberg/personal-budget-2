@@ -7,7 +7,7 @@ const { getEnvelopeById } = require('../repositories/envelopeRepositories.js');
 // Convert currency string to number
 const parseCurrency = (currencyStr) => {
     // Remove currency symbol, commas and whitespace
-    const numStr = currencyStr.replace('$', '');
+    const numStr = currencyStr.replace(/[$,]/g, '');
     // Convert to number, handles negative values too
     return parseFloat(numStr);
 };
@@ -23,8 +23,21 @@ const formatCurrency = (num) => {
 // Arithmetic operations on currency strings
 const currencyArithmetic = {
     add: (a, b) => formatCurrency(parseCurrency(a) + parseCurrency(b)),
-    subtract: (a, b) => formatCurrency(parseCurrency(a) - parseCurrency(b)),
+    subtract: (a, b) => formatCurrency(parseCurrency(a) - parseCurrency(b))
     };
+
+const currencyStr1 = '$500.00'
+const currencyStr2 = '$400.00'
+const currencyStr3 = formatCurrency(parseCurrency(currencyStr1) / 2);
+const currencyStr4 = formatCurrency(parseCurrency(currencyStr2) / 2);
+
+console.log(`parseCurrency(currencyStr1): ${parseCurrency(currencyStr1)}`);
+console.log(`parseCurrency(currencyStr2): ${parseCurrency(currencyStr2)}`);
+console.log(`parseCurrency(currencyStr1) / 2: ${parseCurrency(currencyStr1) / 2}`);
+console.log(`parseCurrency(currencyStr2) / 2: ${parseCurrency(currencyStr2) / 2}`);
+console.log(`formatted: parseCurrency(currencyStr1) / 2: ${formatCurrency(parseCurrency(currencyStr1) / 2)}`);
+console.log(`formatted: parseCurrency(currencyStr2) / 2: ${formatCurrency(parseCurrency(currencyStr2) / 2)}`);
+console.log(`currencyArithmetic.subtract: ${currencyArithmetic.add(currencyStr3, currencyStr4)}`);
 
 // Helper function to validate envelope based on the schema
 const validEnvelope = (envelope) => {
@@ -81,6 +94,7 @@ const validTransferRequest = async (transferReq) => {
     const sourceEnvelopeId = transferReq.sourceEnvelopeId;
     const targetEnvelopeId = transferReq.targetEnvelopeId;
     const transferAmount = transferReq.transferAmount;
+    if (Number.isNaN(parseCurrency(transferAmount))) throw new Error ('Please enter a valid transfer amount.');
     let sourceEnvelope;
     try {
         sourceEnvelope = await getEnvelopeById(sourceEnvelopeId);
@@ -92,6 +106,9 @@ const validTransferRequest = async (transferReq) => {
     } catch (err) {
         throw err;
     }
+    console.log(`transferAmount: ${parseCurrency(transferAmount)}`);
+    console.log(`sourceEnvelope.totalAmountUSD: ${parseCurrency(sourceEnvelope.totalAmountUSD)}`);
+    console.log(`>=: ${parseCurrency(transferAmount) >= parseCurrency(sourceEnvelope.totalAmountUSD)}`);
     if (parseCurrency(transferAmount) >= parseCurrency(sourceEnvelope.totalAmountUSD)) throw new Error('Transfer amount is greater than source budget.');
     return true;
 };
@@ -145,4 +162,4 @@ function validExpenseId(expenseId) {
     return false;
 }
 
-module.exports = { validEnvelope, convertEnvelopeToPlain, validTransferRequest, getEnvelopeIndex, validExpense, convertExpenseToPlain, validExpenseId, currencyArithmetic };
+module.exports = { validEnvelope, convertEnvelopeToPlain, validTransferRequest, getEnvelopeIndex, validExpense, convertExpenseToPlain, validExpenseId, currencyArithmetic, parseCurrency, formatCurrency };

@@ -23,6 +23,7 @@ const getEnvelopeById = async (envelopeId) => {
         const res = await pgClient.query('SELECT id, name, description, total_amount_usd FROM envelopes WHERE id = $1;', [ envelopeId ]);
         if (res.rows.length === 0) throw new Error('ID not in DB.');
         const resultObject = res.rows[0];
+        // console.log(`resultObject.total_amount_usd: ${typeof resultObject.total_amount_usd}`);
         requestedEnvelope = new Envelope (
             resultObject.id,
             resultObject.name,
@@ -61,6 +62,7 @@ const createEnvelope = async (envelopeName, envelopeDescription, totalAmountUSD)
 
 const updateEnvelope = async (envelopeId, envelopeName, envelopeDescription, totalAmountUSD) => {
     try {
+        console.log(`updateEnvelope(totalAmountUSD): ${totalAmountUSD}`);
         // Query to update the database based on the given inputs
         const updatedEnvelopeRes = await pgClient.query('UPDATE envelopes SET name = $1, description = $2, total_amount_usd = $3 WHERE id = $4 RETURNING id, name, description, total_amount_usd;', 
             [envelopeName, envelopeDescription, totalAmountUSD, envelopeId]

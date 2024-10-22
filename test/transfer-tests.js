@@ -4,6 +4,9 @@ const request = require('supertest');
 const chai = require('chai');
 const expect = chai.expect;
 
+// Import in utility functions
+const { currencyArithmetic, parseCurrency, formatCurrency } = require('../utils/utilities');
+
 describe('transferRouter', () => {
     let validTransferRequest;
     let validTransferRequestReverse;
@@ -24,25 +27,29 @@ describe('transferRouter', () => {
             .expect(200);
 
         // Pick 2 valid envelopes
-        const originalEnvelopeSource = allEnvelopesResponse.body[0];
+        originalEnvelopeSource = allEnvelopesResponse.body[0];
+        console.log(`originalEnvelopeSource: ${JSON.stringify(originalEnvelopeSource)}`);
 
-        const originalEnvelopeTarget = allEnvelopesResponse.body[1];
+        originalEnvelopeTarget = allEnvelopesResponse.body[1];
+        console.log(`originalEnvelopeTarget: ${JSON.stringify(originalEnvelopeTarget)}`);
 
         // Set valid transfer amount
-        const validTransferAmount = originalEnvelopeSource.totalAmountUSD / 2;
+        const validTransferAmount = formatCurrency(parseCurrency(originalEnvelopeSource.totalAmountUSD) / 2);
+        console.log(`validTransferAmount: ${validTransferAmount + ' ' + typeof validTransferAmount}`);
 
         // Set invalid transfer amount
-        const invalidTransferAmount = originalEnvelopeSource.totalAmountUSD * 3;
+        const invalidTransferAmount = formatCurrency(parseCurrency(originalEnvelopeSource.totalAmountUSD) * 3);
+        console.log(`invalidTransferAmount: ${invalidTransferAmount + ' ' + typeof invalidTransferAmount}`);
 
         // Construct validTransferRequest
-        const validTransferRequest = {
+        validTransferRequest = {
             "sourceEnvelopeId": originalEnvelopeSource.envelopeId,
             "targetEnvelopeId": originalEnvelopeTarget.envelopeId,
             "transferAmount": validTransferAmount
         };
 
         // Construct transfer request to return to original state
-        const validTransferRequestReverse = {
+        validTransferRequestReverse = {
             "sourceEnvelopeId": originalEnvelopeTarget.envelopeId,
             "targetEnvelopeId": originalEnvelopeSource.envelopeId,
             "transferAmount": validTransferAmount
@@ -50,28 +57,28 @@ describe('transferRouter', () => {
 
         // Construct invalid transfer requests with invalid envelopeIds
         // sourceEnvelopeId invalid type
-        const invalidTransferRequestId1 = {
+        invalidTransferRequestId1 = {
             "sourceEnvelopeId": "laksdfnoweiuhnsdc",
             "targetEnvelopeId": originalEnvelopeTarget.envelopeId,
             "transferAmount": validTransferAmount
         };
 
         // sourceEnvelopeId out of range
-        const invalidTransferRequestId2 = {
+        invalidTransferRequestId2 = {
             "sourceEnvelopeId": -4,
             "targetEnvelopeId": originalEnvelopeTarget.envelopeId,
             "transferAmount": validTransferAmount
         };
 
         // targetEnvelopeId invalid type
-        const invalidTransferRequestId3 = {
+        invalidTransferRequestId3 = {
             "sourceEnvelopeId": originalEnvelopeSource.envelopeId,
             "targetEnvelopeId": "laksdfnoweiuhnsdc",
             "transferAmount": validTransferAmount
         };
 
         // targetEnvelopeId out of range
-        const invalidTransferRequestId4 = {
+        invalidTransferRequestId4 = {
             "sourceEnvelopeId": originalEnvelopeSource.envelopeId,
             "targetEnvelopeId": -4,
             "transferAmount": validTransferAmount
@@ -79,14 +86,14 @@ describe('transferRouter', () => {
 
         // Construct invalid transfer requests with invalid amounts
         // invalid type
-        const invalidTransferRequestAmount1 = {
+        invalidTransferRequestAmount1 = {
             "sourceEnvelopeId": originalEnvelopeSource.envelopeId,
             "targetEnvelopeId": originalEnvelopeTarget.envelopeId,
             "transferAmount": "laksdfnoweiuhnsdc"
         };
 
         // invalid value
-        const invalidTransferRequestAmount2 = {
+        invalidTransferRequestAmount2 = {
             "sourceEnvelopeId": originalEnvelopeSource.envelopeId,
             "targetEnvelopeId": originalEnvelopeTarget.envelopeId,
             "transferAmount": invalidTransferAmount
@@ -122,22 +129,28 @@ describe('transferRouter', () => {
             const resEnvelopeSource = await request(app)
                 .get('/envelopes/' + originalEnvelopeSource.envelopeId)
                 .expect(200);
+            console.log(`resEnvelopeSource: ${JSON.stringify(resEnvelopeSource.body)}`);
 
             const afterEnvelopeSourceAmount = resEnvelopeSource.body.totalAmountUSD;
+            console.log(`afterEnvelopeSourceAmount: ${typeof afterEnvelopeSourceAmount, afterEnvelopeSourceAmount}`);
 
             // GET request for envelope transfered to
             const resEnvelopeTarget = await request(app)
                 .get('/envelopes/' + originalEnvelopeTarget.envelopeId)
                 .expect(200);
+            console.log(`resEnvelopeTarget: ${JSON.stringify(resEnvelopeTarget.body)}`);
 
             const afterEnvelopeTargetAmount = resEnvelopeTarget.body.totalAmountUSD;
+            console.log(`afterEnvelopeTargetAmount: ${typeof afterEnvelopeTargetAmount, afterEnvelopeTargetAmount}`);
 
             // Verify
             // Source envelope is correctly updated
-            expect(afterEnvelopeSourceAmount).to.strict.equal(originalEnvelopeSource.totalAmountUSD - validTransferRequest.transferAmount);
+            // Chai v4.3.8 uses strict equality for .equal()
+            expect(afterEnvelopeSourceAmount).to.equal(currencyArithmetic.subtract(originalEnvelopeSource.totalAmountUSD, validTransferRequest.transferAmount));
 
             // Target envelope is correctly updated
-            expect(afterEnvelopeTargetAmount).to.strict.equal(originalEnvelopeTarget.totalAmountUSD + validTransferRequest.transferAmount);
+            // Chai v4.3.8 uses strict equality for .equal()
+            expect(afterEnvelopeTargetAmount).to.equal(currencyArithmetic.add(originalEnvelopeTarget.totalAmountUSD, validTransferRequest.transferAmount));
 
             // Teardown
             // Reverse valid transfer request

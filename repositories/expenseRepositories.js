@@ -47,35 +47,28 @@ const getExpenseByExpenseId = async (expenseId) => {
         // Return the instance of the Expense class
         return requestedExpense; 
     } catch (err) {
-        console.error(err.stack);
+        // Throw any errors
         throw err;
     }  
 };
 
 const createExpense = async (expenseDescription, expenseAmountUSD, envelopeId) => {
     try {
-        // Create row based on the expense properity inputs
-        await pgClient.query('INSERT INTO expenses (description, amount_usd, envelope_id) VALUES ($1, $2, $3);', 
+        // Create expense in the database using the expense property inputs
+        const res = await pgClient.query('INSERT INTO expenses (description, amount_usd, envelope_id) VALUES ($1, $2, $3) RETURNING id, description, amount_usd, envelope_id;', 
             [expenseDescription, expenseAmountUSD, envelopeId]
         );
-        // Get expenses from the database with matching properties
-        // There may be multiple expenses with the same property so ordering by id descending and taking the first one (zero index)
-        // Assuming that multiple similar expenses with the same properties aren't being created concurrently
-        // TO-DO: Remove this select query and use the RETURNING clause in the above query
-        const res = await pgClient.query('SELECT id, description, amount_usd, envelope_id FROM expenses WHERE description = $1 AND amount_usd = $2 AND envelope_id = $3 ORDER BY id DESC;',
-            [expenseDescription, expenseAmountUSD, envelopeId]
-        );
-        const resultObject = res.rows[0];
-        // Create an instance of the Expense class based on the properties
+        // Create an instance of the Expense class based on the expense created in the database
         const requestedExpense = new Expense (
-            resultObject.id,
-            resultObject.description,
-            resultObject.amount_usd,
-            resultObject.envelope_id
+            res.rows[0].id,
+            res.rows[0].description,
+            res.rows[0].amount_usd,
+            res.rows[0].envelope_id
         );
+        // Return created instance of Expense
         return requestedExpense;
     } catch (err) {
-        console.error(err.stack);
+        // Throw any errors
         throw err;
     }    
 };
@@ -83,13 +76,8 @@ const createExpense = async (expenseDescription, expenseAmountUSD, envelopeId) =
 const updateExpense = async (expenseId, expenseDescription, expenseAmountUSD, envelopeId) => {
     try {
         // Query to update the database based on the given inputs
-        await pgClient.query('UPDATE expenses SET description = $1, amount_usd = $2, envelope_id = $3 WHERE id = $4;', 
+        const res = await pgClient.query('UPDATE expenses SET description = $1, amount_usd = $2, envelope_id = $3 WHERE id = $4 RETURNING id, description, amount_usd, envelope_id;', 
             [expenseDescription, expenseAmountUSD, envelopeId, expenseId]
-        );
-        
-        // Fetch the updated row from the DB
-        const res = await pgClient.query('SELECT id, description, amount_usd, envelope_id FROM expenses WHERE id = $1;',
-            [expenseId]
         );
         // Check to see if there are any rows in the response, if not throw an error
         if (res.rows.length === 0) throw new Error(`Envelope ID ${envelopeId} or expense ID ${expenseId} not in DB.`);
@@ -101,9 +89,10 @@ const updateExpense = async (expenseId, expenseDescription, expenseAmountUSD, en
             resultObject.amount_usd,
             resultObject.envelope_id
         );
+        // Return the instance of the envelope class
         return requestedExpense;
     } catch (err) {
-        console.error(err.stack);
+        // Throw any errors
         throw err;
     }
 };

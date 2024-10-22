@@ -3,21 +3,8 @@ const express = require('express');
 const expenseRouter = express.Router();
 
 // Import helper functions & repositories
-const { validEnvelope, convertEnvelopeToPlain, getEnvelopeIndex, validExpense, convertExpenseToPlain, validExpenseId } = require('../utils/utilities.js');
+const { validExpense, convertExpenseToPlain } = require('../utils/utilities.js');
 const { getExpensesByEnvelopeId, getExpenseByExpenseId, createExpense, updateExpense, deleteExpense } = require('../repositories/expenseRepositories.js');
-
-// Create a new stream to write to file in this directory
-const fs = require('fs');
-const path = require('path');
-const expenseLogStream = fs.createWriteStream(path.join(__dirname, '..', 'logs', 'expense-logs.txt'), { flags: 'a' });
-
-// Import envelope array
-/*
-const { envelopeArray, expenseArray } = require('../test/the-database-lol.js');
-*/
-
-// Import expense class definition
-const { Expense } = require('../models/class-definitions.js');
 
 // Import generic error handler
 const genericErrorHandler = require('../middleware/generic-error-handler.js');
@@ -30,11 +17,14 @@ expenseRouter.param('expenseId', expenseIdValidator);
 // GET /envelopes/:envelope_id/expenses
 expenseRouter.get('/', async (req, res, next) => {
     try {
-        // console.log(`req.envelopeId: ${req.envelopeId}`);
+        // Call helper function to getExpensesByEnvelopeId
         const expenseArray = await getExpensesByEnvelopeId(req.envelopeId);
+        // Convert expenses in the array to plain objects
         const plainExpenseArray = expenseArray.map((expense) => convertExpenseToPlain(expense));
+        // Send the array of plain objects in the request
         res.status(200).send(plainExpenseArray);
     } catch (err) {
+        // Pass any errors to the generic error handler
         return next(err);
     }    
 });
@@ -42,72 +32,73 @@ expenseRouter.get('/', async (req, res, next) => {
 // GET /envelopes/:envelope_id/expenses/:expense_id
 expenseRouter.get('/:expenseId', async (req, res, next) => {
     try {
+        // Call helper function to getExpenseByExpenseId
         const requestedExpense = await getExpenseByExpenseId(req.expenseId);
-        // console.log(`req.params.envelopeId: ${req.params.envelopeId}`);
-        // console.log(`requestedEnvelope: ${JSON.stringify(requestedEnvelope)}`)
+        // Convert the expense to a plain object
         const plainExpense = convertExpenseToPlain(requestedExpense);
+        // Send the plain object back as the response
         res.status(200).send(plainExpense);
     } catch (err) {
+        // Handle the case where the expenseId is not in the DB or invalid
         if (err.message === 'No expenses for envelopeId.' ||
             err.message.indexOf('invalid input syntax for type integer') !== -1 ||
             err.message.indexOf('is out of range for type integer') !== -1) {
+            // Send a 404 in the response
             res.status(404).send();
         } else {
+            // Pass other errors to the generic error handler
             return next(err);
         }
     }
-    // res.send(convertExpenseToPlain(req.expense));
 });
 
 // POST /envelopes/:envelope_id/expenses
-// TO-DO: add validation to check that envelopeId in path matches envelopeId in body
 expenseRouter.post('/', async (req, res, next) => {
+    // Create a binding for the request body
     const expenseRequest = req.body;
+    // Validate that the envelopeId in the path matches the envelopeId in the body and throw a descriptive error
+    if(!expenseRequest.envelopeId || req.envelopeId !== expenseRequest.envelopeId.toString()) {
+        return next(new Error('envelopeId in path does not match envelopeId in body.'));
+    }
     // Validate the request body
-    console.log(`In expense router: expenseRequest: ${JSON.stringify(expenseRequest)}`);
     if (validExpense(expenseRequest)) {
-        // As a transaction, update the expense and envelope arrays
         try {
-            const newExpense = await createExpense(
+            // Call helper function to createExpense from request body
+            const newExpense = await createExpense (
                 expenseRequest.expenseDescription,
                 expenseRequest.expenseAmountUSD,
                 expenseRequest.envelopeId
-            );
-        /*    
-            const expenseAmountUSD = req.body.expenseAmountUSD;
-            const envelopeId = req.envelopeId;
-            const newExpense = new Expense(req.body.expenseName, req.body.expenseDescription, expenseAmountUSD, envelopeId);
-            expenseArray.push(newExpense);
-            if (validEnvelopeId(envelopeId)) {
-                const envelopeIndex = getEnvelopeIndex(envelopeId);
-                envelopeArray[envelopeIndex].totalSpentUSD += expenseAmountUSD;
-            } else {
-                throw new Error('Provide a valid envelopeId in the request.')
-            }
-        */        
-            // Convert the new expense to a plain object and return it
+            );      
+            // Convert the new expense to a plain object
             const plainExpense = convertExpenseToPlain(newExpense);
+            // Send the plain object back in the response
             res.status(200).send(plainExpense);
         } catch (err) {
-            console.error(err.stack);
+            // Pass any errors to the generic error handler
             return next(err);
         }
     } else {
-        const validErr = new Error('Please include a valid expense in the request.');
-        return next(validErr);
+        // Handle the case where validation of the request body failed
+        // Pass a descriptive error to the generic error handler
+        return next(new Error('Please include a valid expense in the request.'));
     }
 });
 
 // PUT /envelopes/:envelope_id/expenses/:expense_id
 expenseRouter.put('/:expenseId', async (req, res, next) => {
+    // Create a binding for the request body
     const expenseRequest = req.body;
+    // Validate that the envelopeId in the path matches the envelopeId in the body and throw a descriptive error
+    if(!expenseRequest.envelopeId || req.envelopeId !== expenseRequest.envelopeId.toString()) {
+        return next(new Error('envelopeId in path does not match envelopeId in body.'));
+    }
     // Validate the request body, including the expense id (param middleware)
     if (validExpense(expenseRequest)) {
+        // Validate that the expenseId in the path matches the expenseId in the body and throw a descriptive error
         if (req.expenseId !== expenseRequest.expenseId.toString()) {
-            const matchErr = new Error('expenseId in path does not match expenseId in body.');
-            return next(matchErr);
+            return next(new Error('expenseId in path does not match expenseId in body.'));
         }
-        // As a transaction, update the expense and envelope arrays
+        // Call helper function to update the expense in the database
         try {
             const updatedExpense = await updateExpense(
                 expenseRequest.expenseId,
@@ -115,40 +106,31 @@ expenseRouter.put('/:expenseId', async (req, res, next) => {
                 expenseRequest.expenseAmountUSD,
                 expenseRequest.envelopeId
             );
-            /*
-            const newExpenseAmt = Number(req.body.expenseAmountUSD);
-            const changeInExpenseAmt = newExpenseAmt - req.expense.expenseAmountUSD;
-            expenseArray[req.expenseIndex].expenseName = req.body.expenseName;
-            expenseArray[req.expenseIndex].expenseDescription = req.body.expenseDescription;
-            expenseArray[req.expenseIndex].expenseAmountUSD = newExpenseAmt;
-            // Update the totalSpentUSD for the corresponding envelope
-            envelopeArray[req.envelopeIndex].totalSpentUSD += changeInExpenseAmt;
-            */
+            // Convert the updated expense to a plain object
             const updatedExpensePlain = convertExpenseToPlain(updatedExpense);
-            // Return the updated expense
+            // Return the plain object
             res.status(200).send(updatedExpensePlain);
         } catch (err) {
-            console.error(err.stack);
+            // Pass any errors to the generic error handler
             return next(err);
         }
     } else {
-        const validErr = new Error('Please include valid expense properities in the request body.');
-        return next(validErr);
+        // Handle the case where validation of the request body failed.
+        // Pass a descritptive error to the generic error handler.
+        return next(new Error('Please include valid expense properities in the request body.'));
     }
 });
 
 // DELETE /envelopes/:envelope_id/expenses/:expense_id
 expenseRouter.delete('/:expenseId', async (req, res, next) => {
     try {
+        // Call helper function to delete the expense from the database
         await deleteExpense(req.expenseId);
-        /*
-        envelopeArray[req.envelopeIndex].totalSpentUSD -= Number(req.expense.expenseAmountUSD);
-        expenseArray.splice(req.expenseIndex, 1);
-        */
+        // If succesful, send a 204 status as part of the response
         res.status(204).send();
     } catch (err) {
-        console.error(err.stack);
-        return next(err.stack);
+        // Pass any errors ot the generic error handler
+        return next(err);
     }
 });
 

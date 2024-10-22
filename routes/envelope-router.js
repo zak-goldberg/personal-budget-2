@@ -7,11 +7,6 @@ const { validEnvelope, convertEnvelopeToPlain } = require('../utils/utilities.js
 const { getEnvelopes, getEnvelopeById, createEnvelope, updateEnvelope, deleteEnvelope } = require('../repositories/envelopeRepositories.js');
 const { getExpensesByEnvelopeId } = require('../repositories/expenseRepositories.js');
 
-// Create a new stream to write to log file in this directory
-const fs = require('fs');
-const path = require('path');
-const envelopeLogStream = fs.createWriteStream(path.join(__dirname, '..', 'logs', 'envelope-logs.txt'), { flags: 'a' });
-
 // Import and use envelopeId validation middleware
 const { envelopeIdValidator } = require('../middleware/parameter-middleware.js');
 envelopeRouter.param('envelopeId', envelopeIdValidator);
@@ -20,19 +15,20 @@ envelopeRouter.param('envelopeId', envelopeIdValidator);
 const expenseRouter = require('../routes/expense-router.js');
 envelopeRouter.use('/:envelopeId/expenses', expenseRouter);
 
-// Import envelope class definition
-const { Envelope } = require('../models/class-definitions.js');
-
 // Import generic error handler
 const genericErrorHandler = require('../middleware/generic-error-handler.js');
 
 // GET /envelopes
 envelopeRouter.get('/', async (req, res, next) => {
     try {
+        // Get all envelopes in the DB
         const envelopeArray = await getEnvelopes();
+        // Convert each item in the array to a plain object
         const plainEnvelopeArray = envelopeArray.map((envelope) => convertEnvelopeToPlain(envelope));
-        res.send(plainEnvelopeArray);
+        // Send the converted array back as the response
+        res.status(200).send(plainEnvelopeArray);
     } catch (err) {
+        // Pass any errors to the generic error handler
         return next(err);
     }
 });
@@ -40,16 +36,20 @@ envelopeRouter.get('/', async (req, res, next) => {
 // GET /envelopes/:envelopeId
 envelopeRouter.get('/:envelopeId', async (req, res, next) => {
     try {
-        const requestedEnvelope = await getEnvelopeById(req.params.envelopeId);
-        // console.log(`req.params.envelopeId: ${req.params.envelopeId}`);
-        // console.log(`requestedEnvelope: ${JSON.stringify(requestedEnvelope)}`)
+        // Get envelope from DB given an envelope id
+        const requestedEnvelope = await getEnvelopeById(req.envelopeId);
+        // Conver the envelope to a plain object
         const plainEnvelope = convertEnvelopeToPlain(requestedEnvelope);
-        res.send(plainEnvelope);
+        // Send the plain object back in the response
+        res.status(200).send(plainEnvelope);
     } catch (err) {
+        // Handle errors associated with invalid envelopeIds
         if (err.message === 'ID not in DB.' ||
             err.message.indexOf('invalid input syntax for type integer') !== -1) {
+            // Send 404 status when passed an invalid envelopeId
             res.status(404).send();
         } else {
+            // Pass other errors to the generic error handler
             return next(err);
         }
     }
@@ -57,58 +57,87 @@ envelopeRouter.get('/:envelopeId', async (req, res, next) => {
 
 // POST /envelopes
 envelopeRouter.post('/', async (req, res, next) => {
+    // Add the request body to a binding
     const envelopeRequest = req.body;
+    // Validate the request body
     if (validEnvelope(envelopeRequest)){
         try {
-            const newEnvelope = await createEnvelope(envelopeRequest.envelopeName, envelopeRequest.envelopeDescription, envelopeRequest.totalAmountUSD);
+            // Call createEnvelope with validated request body
+            const newEnvelope = await createEnvelope (
+                envelopeRequest.envelopeName, 
+                envelopeRequest.envelopeDescription, 
+                envelopeRequest.totalAmountUSD
+            );
+            // Convert result to a plain object
             const plainEnvelope = convertEnvelopeToPlain(newEnvelope);
-            res.send(plainEnvelope);
+            // Send the plain object back in the request
+            res.status(200).send(plainEnvelope);
         } catch (err) {
+            // Pass any errors to the generic error handler
             return next(err);
         }
     } else {
-        const validationErr = new Error('Please enter a valid envelope.');
-        return next(validationErr);
+        // Handle a request body that failed validation
+        return next(new Error('Please enter a valid envelope.'));
     }
 });
 
 // PUT /envelopes/:envelopeId
 envelopeRouter.put('/:envelopeId', async (req, res, next) => {
+    // Create a binding for the request body
     const updatedProperties = req.body;
+    // Validate the request body
     if (validEnvelope(updatedProperties)) {
         try {
-            const updatedEnvelope = await updateEnvelope(req.params.envelopeId, updatedProperties.envelopeName, updatedProperties.envelopeDescription, updatedProperties.totalAmountUSD);
+            // Call updateEnvelope() with properties from the request body
+            const updatedEnvelope = await updateEnvelope(
+                req.params.envelopeId, 
+                updatedProperties.envelopeName, 
+                updatedProperties.envelopeDescription, 
+                updatedProperties.totalAmountUSD
+            );
+            // Convert the returned, updated envelope to a plain object
             const plainEnvelope = convertEnvelopeToPlain(updatedEnvelope);
-            res.send(plainEnvelope);
+            // Send the plain object back in the response
+            res.status(200).send(plainEnvelope);
         } catch (err) {
+            // Handle errors related to invalid envelopeIds
             if (err.message === 'ID not in DB.' ||
                 err.message.indexOf('invalid input syntax for type integer') !== -1) {
+                // Send a 404 status for invalid envelopeIds
                 res.status(404).send();
             } else {
+                // Send other errors to the generic error handler
                 return next(err);
             }
         }
     } else {
-        const validationErr = new Error('Please enter a valid envelope.');
-        return next(validationErr); 
+        // Handle a request body that failed validation
+        return next(new Error('Please enter a valid envelope.')); 
     }
 });
 
 // DELETE /envelopes/:envelopeId
 envelopeRouter.delete('/:envelopeId', async (req, res, next) => {
     try {
+        // Call helper function to check if there are expenses associated with the envelope
         await getExpensesByEnvelopeId(req.envelopeId);
     } catch (err) {
-        // console.error(err.stack);
+        // Handle the case where there are **no** expenses associated with the envelopeId
         if (err.message === 'No expenses for envelopeId.') {
+            // Call helper function to delete the envelopeId from the database
             await deleteEnvelope(req.envelopeId);
+            // If succesful send a 204 status in the response
             return res.status(204).send();
+        // Handle the case where there are expenses associated with the envelopeId
         } else {
+            // Pass other errors to the generic error handler
             return next(err);
         }
     }
-    const expenseError = new Error('Envelopes with associated expenses can\'t be deleted');
-    return next(expenseError);
+    // Handle the case where there are expenses associated with the envelopeId
+    // Pass a new error to the generic error handler
+    return next(new Error('Envelopes with associated expenses can\'t be deleted'));
 });
 
 // Error handler

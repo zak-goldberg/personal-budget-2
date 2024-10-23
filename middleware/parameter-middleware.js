@@ -1,57 +1,43 @@
-// Import envelope and expense array
-const { envelopeArray, expenseArray } = require('../test/the-database-lol.js');
-
-// Import envelope and expense id validator helper functions
-const { validEnvelopeId, validExpenseId } = require('../utils/utilities.js');
-
 // Import getEnvelopeById & getExpenseByExpenseId
 const { getEnvelopeById } = require('../repositories/envelopeRepositories.js');
 const { getExpenseByExpenseId } = require('../repositories/expenseRepositories.js');
 
-// envelopeId validation
-// add req.envelope, req.envelopeId, req.envelopeIndex
 const envelopeIdValidator = async (req, res, next, id) => {
     try {
+        // Use helper function to see if there is a record for the provided envelopeId
         await getEnvelopeById(id);
+        // Add envelopeId to req
         req.envelopeId = id;
+        // Pass to the next middleware
         next();
     } catch (err) {
+        // Handle the case where the provided envelopeId is not in the database
         if (err.message === 'ID not in DB.' ||
             err.message.indexOf('invalid input syntax for type integer') !== -1) {
+            // Send a 404 status in the response
             res.status(404).send();
         } else {
+            // Otherwise pass any other errors to the generic error handler
             return next(err);
         }
     }
-    /*
-    if (validEnvelopeId(Number(id))) {
-        const arrayOfIds = envelopeArray.reduce((accumulator, currentValue) => {
-            accumulator.push(currentValue.envelopeId);
-            return accumulator;
-        }, []);
-        const envelopeIndex = arrayOfIds.indexOf(Number(id));
-        req.envelopeIndex = envelopeIndex;
-        req.envelope = envelopeArray[envelopeIndex];
-        req.envelopeId = Number(id);
-        next();
-    } else {
-        return next(new Error('Please provide a valid envelope id.'));
-    }
-    */
 };
 
 // expenseId validation
 const expenseIdValidator = async (req, res, next, id) => {
     try {
-        // Call getExpenseByExpenseId with parameter, move to next if no error
+        // Use helper function to see if there is a record for the provided expenseId
         await getExpenseByExpenseId(id);
+        // Add expenseId to req
         req.expenseId = id;
+        // Pass to the next middleware
         next();
     } catch (err) {
-        // Change status code to 404 based on specific error messages
+        // Handle the case where the expenseId provided is not in the database
         if (err.message === 'ID not in DB.' ||
             err.message.indexOf('invalid input syntax for type integer' !== -1) ||
             err.message.indexOf('is out of range for type integer' !== -1)) {
+            // Send a 404 status in the response
             res.status(404).send();
         } else {
         // Otherwise pass error to the generic error handler    

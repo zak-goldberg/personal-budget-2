@@ -1,13 +1,12 @@
 const { Client } = require('pg');
 
 // Create a new client instance
-// TO-DO: change to environmental variables
 const pgClient = new Client({
-    user: 'zakgoldberg',
-    host: 'localhost',
-    database: 'personal_budget',
-    password: '',
-    port: 5432
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD,
+    port: process.env.DB_PORT
   });
   
 // Connect to the PostgreSQL database

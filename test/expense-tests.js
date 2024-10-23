@@ -6,7 +6,7 @@ const expect = chai.expect;
 let validExpenseObject;
 
 describe('expenseRouter', () => {
-    // Initialize variables that will be used in tests below
+    // Initialize variables that will be used in multiple tests
     const validEnvelopeId = 1;
     validExpenseObject = {
         expenseDescription: "Waffles.",
@@ -27,14 +27,30 @@ describe('expenseRouter', () => {
     };
 
     before(async () => {
-        // Create a new expense
-        const response = await request(app)
-            .post('/envelopes/' + validEnvelopeId + '/expenses')
-            .send(validExpenseObject)
-            .expect(200);
+        // Create a new expense to be used across tests
+        try {
+            const response = await request(app)
+                .post('/envelopes/' + validEnvelopeId + '/expenses')
+                .send(validExpenseObject)
+                .expect(200);
 
-        newExpenseId = response.body.expenseId;
-        console.log(`before - describe expenseRouter - newExpenseId: ${newExpenseId}`);
+            newExpenseId = response.body.expenseId;
+        } catch (err) {
+            throw err;
+        }
+
+    });
+
+    after( async () => {
+        // Delete the expense created in the before() hook
+        try {
+            await request(app)
+                .delete('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId)
+                .expect(204);
+        } catch (err) {
+            throw err;
+        }
+        
     });
 
     describe('GET /envelopes/:envelope_id/expenses', () => {
@@ -106,27 +122,32 @@ describe('expenseRouter', () => {
     });
 
     describe('POST /envelopes/:envelope_id/expenses', () => {
-        // TO-DO: Add teardown
         it('should return a 200 status code when passed a valid input', async () => {
-            await request(app)
+            // Exercise & Verify
+            const res = await request(app)
                 .post('/envelopes/' + validEnvelopeId + '/expenses')
                 .send(validExpenseObject)
                 .expect(200);
+            
+            // Create a binding for the created expenseId
+            const resExpenseId = res.body.expenseId;
+            
+            // Teardown
+            await request(app)
+                .delete('/envelopes/' + validEnvelopeId + '/expenses/' + resExpenseId)
+                .expect(204); 
         });
 
         it('should persist a valid new expense in the database', async () => {
             // Exercise
             // Create new expense associated with validEnvelopeId
             const responsePost = await request(app)
-            .post('/envelopes/' + validEnvelopeId + '/expenses')
-            .send(validExpenseObject)
-            .expect(200);
-            // console.log(responsePost.body);    
+                .post('/envelopes/' + validEnvelopeId + '/expenses')
+                .send(validExpenseObject)
+                .expect(200); 
 
             // Save new id
             const newExpenseId2 = responsePost.body.expenseId;
-            // console.log(`newEnvelopeId: ${newEnvelopeId}`);
-            // console.log(`typeof newEnvelopeId: ${typeof newEnvelopeId}`);
 
             // Verify
             // GET the new envelope from the database
@@ -141,9 +162,7 @@ describe('expenseRouter', () => {
             expect(responseGet.body).to.deep.equal(validExpenseObject);
 
             // Teardown
-            // Delete new Envelope from the database
-            // console.log(`newEnvelopeId: ${newEnvelopeId}`);
-            // console.log(`typeof newEnvelopeId: ${typeof newEnvelopeId}`);
+            // Delete new expense from the database
             await request(app)
                 .delete('/envelopes/' + validEnvelopeId + '/expenses/' + newExpenseId2)
                 .expect(204);
@@ -162,7 +181,7 @@ describe('expenseRouter', () => {
 
     describe('PUT /envelopes/:envelope_id/expenses/:expense_id', () => {
         
-        // Create variable to store expense before updating it
+        // Create variable to store original expense before updating it
         let originalExpenseObject;
         
         before( async () => {

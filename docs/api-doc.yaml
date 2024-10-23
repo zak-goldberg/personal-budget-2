@@ -1,0 +1,326 @@
+openapi: 3.0.3
+info:
+  title: Personal Budget API
+  description: >-
+    The Personal Budget API provides users the ability to create budget
+    `envelope` and `expense` resources and to perform CRUD operations on them. For more information on the project see the
+    [README](https://github.com/zak-goldberg/personal-budget-2/blob/main/README.md).
+
+    # Envelope
+
+    An `envelope` is a bucket to track a certain type of expense. Examples are
+    `Groceries` or `Entertainment`. The `envelope` tracks the `totalAmountUSD`
+    which is the amount of money allocated to that specific type of expense as
+    part of the budget. The sum of `expenseAmountUSD` for all `expenses` should
+    not exceed the `totalAmountUSD` of the envelope.
+
+    ## Schema
+      - envelopeId (Number)
+      - envelopeName (String)
+      - envelopeDescription (String)
+      - totalAmountUSD (String formatted as currency)
+
+    # Expenses
+
+    An `expense` is a distinct expense associated with an `envelope`. An example
+    would be an `expense`called `Ice Cream` for the `Groceries` envelopes.
+
+    ## Schema
+      - expenseId (Number)
+      - expenseDescription (String)
+      - expenseAmountUSD (String formatted as currency)
+      - envelopeId (Number)
+  contact:
+    email: zak.goldberg@gmail.com
+  version: 1.0.0
+externalDocs:
+  description: GitHub Repository
+  url: https://github.com/zak-goldberg/personal-budget-2
+paths:
+  /envelopes:
+    summary: CRUD operations for envelope resources.
+    get:
+      summary: List Envelopes
+      description: Lists all envelopes in the database.
+      operationId: getEnvelopes
+      responses:
+        '200':
+          description: Succesful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/envelopeExisting'
+      tags:
+        - envelopes
+    post:
+      summary: Create an envelope
+      description: ''
+      operationId: createEnvelope
+      requestBody:
+        description: Create a new envelope
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/envelopeNew'
+        required: true
+      responses:
+        '200':
+          description: Succesful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/envelopeExisting'
+        '400':
+          description: Invalid request body
+      tags:
+        - envelopes
+  /envelopes/{envelopeId}:
+    parameters:
+        - name: envelopeId
+          in: path
+          description: id for an envelope
+          required: true
+          schema:
+            type: integer
+    put:
+      tags:
+        - envelopes
+      summary: Update an existing envelope
+      description: ''
+      operationId: updateEnvelope
+      requestBody:
+        description: Update an existing envelope
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/envelopeExisting'
+      responses:
+        '200':
+          description: Succesful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/envelopeExisting'
+        '400':
+          description: Invalid request body
+        '404':
+          description: Invalid envelopeId
+    get:
+      tags:
+        - envelopes
+      summary: Get a specific envelope
+      description: ''
+      operationId: getEnvelopeById
+      responses:
+        '200':
+          description: Succesful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/envelopeExisting'
+        '404':
+          description: Invalid envelopeId
+    delete:
+      tags:
+        - envelopes
+      summary: Delete a specific envelope
+      description: ''
+      operationId: deleteEnvelopeById
+      responses:
+        '204':
+          description: Envelope succesfully deleted
+        '404':
+          description: Invalid envelopeId
+  /envelopes/{envelopeId}/expenses:
+    parameters:
+        - name: envelopeId
+          in: path
+          description: id for an envelope
+          required: true
+          schema:
+            type: integer
+    summary: CRUD operations for expenses.
+    get:
+      summary: List expenses for an envelopeId
+      description: Lists all expenses associated with an envelopeId.
+      operationId: getExpensesByEnvelopeId
+      responses:
+        '200':
+          description: Succesful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/expenseExisting'
+        '404':
+          description: Invalid envelopeId
+      tags:
+        - expenses
+    post:
+      summary: Create an expense
+      description: ''
+      operationId: createExpense
+      requestBody:
+        description: Create a new expense
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/expenseNew'
+        required: true
+      responses:
+        '200':
+          description: Succesful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/expenseExisting'
+        '400':
+          description: Invalid request body
+        '404':
+          description: Invalid envelopeId
+      tags:
+        - expenses
+  /envelopes/{envelopeId}/expenses/{expenseId}:
+    parameters:
+        - name: envelopeId
+          in: path
+          description: id for an envelope
+          required: true
+          schema:
+            type: integer
+        - name: expenseId
+          in: path
+          description: id for an expense
+          required: true
+          schema:
+            type: integer
+    put:
+      tags:
+        - expenses
+      summary: Update an existing expense
+      description: ''
+      operationId: updateExpense
+      requestBody:
+        description: Update an existing expense
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/expenseExisting'
+      responses:
+        '200':
+          description: Succesful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/expenseExisting'
+        '400':
+          description: Invalid request body
+        '404':
+          description: Invalid expenseId
+    get:
+      tags:
+        - expenses
+      summary: Get a specific expense
+      description: ''
+      operationId: getExpenseById
+      responses:
+        '200':
+          description: Succesful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/expenseExisting'
+        '404':
+          description: Invalid envelopeId or expenseId
+    delete:
+      tags:
+        - expenses
+      summary: Delete a specific expense
+      description: ''
+      operationId: deleteExpenseById
+      responses:
+        '204':
+          description: Expense succesfully deleted
+        '404':
+          description: Invalid expenseId
+components:
+  schemas:
+    envelopeExisting:
+      required:
+        - envelopeId
+        - envelopeName
+        - envelopeDescription
+        - totalAmountUSD
+      type: object
+      properties:
+        envelopeId:
+          type: integer
+          example: 1
+        envelopeName:
+          type: string
+          example: Entertainment
+        envelopeDescription:
+          type: string
+          example: Song and Dance
+        totalAmountUSD:
+          type: string
+          example: $5.00
+    envelopeNew:
+      required:
+        - envelopeName
+        - envelopeDescription
+        - totalAmountUSD
+      type: object
+      properties:
+        envelopeName:
+          type: string
+          example: Entertainment
+        envelopeDescription:
+          type: string
+          example: Song and Dance
+        totalAmountUSD:
+          type: string
+          example: $5.00
+    expenseExisting:
+      required:
+        - expenseId
+        - expenseDescription
+        - expenseAmountUSD
+        - envelopeId
+      type: object
+      properties:
+        expenseId:
+          type: integer
+          example: 1
+        expenseDescription:
+          type: string
+          example: Waffles
+        expenseAmountUSD:
+          type: string
+          example: $5.00
+        envelopeId:
+          type: integer
+          example: 2
+    expenseNew:
+      required:
+        - expenseId
+        - expenseDescription
+        - expenseAmountUSD
+        - envelopeId
+      type: object
+      properties:
+        expenseId:
+          type: integer
+          example: 1
+        expenseDescription:
+          type: string
+          example: Waffles
+        expenseAmountUSD:
+          type: string
+          example: $5.00
+        envelopeId:
+          type: integer
+          example: 2

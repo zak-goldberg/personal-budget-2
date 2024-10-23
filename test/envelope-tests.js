@@ -8,7 +8,7 @@ const expect = chai.expect;
 const { validExpenseObject } = require('./expense-tests');
 
 describe('envelopeRouter', () => {
-    // Initializing variables used in envelopeRouter tests
+    // Initializing variables used in across tests
     const validEnvelopeId = 1;
     const invalidEnvelopeId1 = '1500';
     const invalidEnvelopeId2 = 'ladksfihowefjks';
@@ -100,10 +100,17 @@ describe('envelopeRouter', () => {
     describe('POST /envelopes', () => {
         // TO-DO: Add teardown
         it('should return a 200 status code when passed a valid input', async () => {
-            await request(app)
+            // Exercise & Verify
+            const res = await request(app)
                 .post('/envelopes')
                 .send(validEnvelopeObject)
                 .expect(200);
+
+            const resEnvelopeId = res.body.envelopeId;
+
+            // Teardown
+            await request(app)
+                .delete('/envelopes/' + resEnvelopeId);
         });
 
         it('should persist a valid new envelope in the database', async () => {
@@ -112,13 +119,10 @@ describe('envelopeRouter', () => {
             const responsePost = await request(app)
                 .post('/envelopes')
                 .send(validEnvelopeObject)
-                .expect(200);
-            // console.log(responsePost.body);    
+                .expect(200);   
 
             // Save new id
             const newEnvelopeId = responsePost.body.envelopeId;
-            // console.log(`newEnvelopeId: ${newEnvelopeId}`);
-            // console.log(`typeof newEnvelopeId: ${typeof newEnvelopeId}`);
 
             // Verify
             // GET the new envelope from the database
@@ -134,8 +138,6 @@ describe('envelopeRouter', () => {
 
             // Teardown
             // Delete new Envelope from the database
-            // console.log(`newEnvelopeId: ${newEnvelopeId}`);
-            // console.log(`typeof newEnvelopeId: ${typeof newEnvelopeId}`);
             await request(app)
                 .delete('/envelopes/' + newEnvelopeId)
                 .expect(204);
@@ -292,7 +294,6 @@ describe('envelopeRouter', () => {
             validExpenseObject.envelopeId = newEnvelopeId;
 
             // Create an expense associated with newEnvelopeId
-            // console.log(`In envelope-tests: validExpenseObject: ${JSON.stringify(validExpenseObject)}`);
             const newAsscExpense = await request(app)
                 .post('/envelopes/' + newEnvelopeId + '/expenses')
                 .send(validExpenseObject)
@@ -302,8 +303,6 @@ describe('envelopeRouter', () => {
 
             // Update validExpenseObject envelopeId to newEnvelopeId
             validExpenseObject.envelopeId = newEnvelopeId;
-            console.log(`newEnvelopeId: ${newEnvelopeId}`);
-            console.log(`validExpenseObject: ${JSON.stringify(validExpenseObject)}`);
             
             // Exercise & Verify
             // Try to delete newEnvelopeId, expect a 400 since there is an associated expense
@@ -324,4 +323,3 @@ describe('envelopeRouter', () => {
         });
     });
 });
-

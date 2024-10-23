@@ -8,6 +8,7 @@ const expect = chai.expect;
 const { currencyArithmetic, parseCurrency, formatCurrency } = require('../utils/utilities');
 
 describe('transferRouter', () => {
+    // Create variables that will be used across tests, values assigned in before() hook
     let validTransferRequest;
     let validTransferRequestReverse;
     let originalEnvelopeSource;
@@ -28,18 +29,14 @@ describe('transferRouter', () => {
 
         // Pick 2 valid envelopes
         originalEnvelopeSource = allEnvelopesResponse.body[0];
-        console.log(`originalEnvelopeSource: ${JSON.stringify(originalEnvelopeSource)}`);
 
         originalEnvelopeTarget = allEnvelopesResponse.body[1];
-        console.log(`originalEnvelopeTarget: ${JSON.stringify(originalEnvelopeTarget)}`);
 
         // Set valid transfer amount
         const validTransferAmount = formatCurrency(parseCurrency(originalEnvelopeSource.totalAmountUSD) / 2);
-        console.log(`validTransferAmount: ${validTransferAmount + ' ' + typeof validTransferAmount}`);
 
         // Set invalid transfer amount
         const invalidTransferAmount = formatCurrency(parseCurrency(originalEnvelopeSource.totalAmountUSD) * 3);
-        console.log(`invalidTransferAmount: ${invalidTransferAmount + ' ' + typeof invalidTransferAmount}`);
 
         // Construct validTransferRequest
         validTransferRequest = {
@@ -125,23 +122,21 @@ describe('transferRouter', () => {
                 .send(validTransferRequest)
                 .expect(200);
 
-            // GET request for envelope transfered from 
+            // GET request for source envelope after the transfer
             const resEnvelopeSource = await request(app)
                 .get('/envelopes/' + originalEnvelopeSource.envelopeId)
                 .expect(200);
-            console.log(`resEnvelopeSource: ${JSON.stringify(resEnvelopeSource.body)}`);
 
+            // Create a variable to store the totalAmountUSD for the source envelope after the transfer
             const afterEnvelopeSourceAmount = resEnvelopeSource.body.totalAmountUSD;
-            console.log(`afterEnvelopeSourceAmount: ${typeof afterEnvelopeSourceAmount, afterEnvelopeSourceAmount}`);
 
-            // GET request for envelope transfered to
+            // GET request for the target envelope
             const resEnvelopeTarget = await request(app)
                 .get('/envelopes/' + originalEnvelopeTarget.envelopeId)
                 .expect(200);
-            console.log(`resEnvelopeTarget: ${JSON.stringify(resEnvelopeTarget.body)}`);
 
+            // Create a variable to store totalAmountUSD for the target envelope after the tranfer
             const afterEnvelopeTargetAmount = resEnvelopeTarget.body.totalAmountUSD;
-            console.log(`afterEnvelopeTargetAmount: ${typeof afterEnvelopeTargetAmount, afterEnvelopeTargetAmount}`);
 
             // Verify
             // Source envelope is correctly updated

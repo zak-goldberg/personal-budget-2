@@ -246,6 +246,32 @@ paths:
           description: Expense succesfully deleted
         '404':
           description: Invalid expenseId
+  /transfers:
+    post:
+      tags:
+        - envelopes
+      summary: Transfer totalAmountUSD from one envelope to another
+      description: ''
+      operationId: createTransfer
+      requestBody:
+        description: Create a new transfer
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/transferRequest'
+      responses:
+        '200':
+          description: Succesful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/envelopeExisting'
+        '404':
+          description: Invalid envelopeId
+        '400':
+          description: Invalid transferAmount
 components:
   schemas:
     envelopeExisting:
@@ -324,3 +350,19 @@ components:
         envelopeId:
           type: integer
           example: 2
+    transferRequest:
+      required:
+        - sourceEnvelopeId
+        - targetEnvelopeId
+        - transferAmount
+      type: object
+      properties:
+        sourceEnvelopeId:
+          type: integer
+          example: 1
+        targetEnvelopeId:
+          type: integer
+          example: 2
+        transferAmount:
+          type: string
+          example: $5.00

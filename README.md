@@ -134,7 +134,6 @@ You will extend the Personal Budget API created in [Personal Budget, Part I](htt
 - Be careful with DB constraints:
   - I had `FOREIGN KEY` and `NOT NULL` constraints for the `envelope_id` column in my `envelope_audit` table, which made it impossible to delete records from the `envelopes` table.
   - If a trigger runs AFTER DELETE on a base table to add a corresponding row in an audit table but the audit table has a foreign key constraint on the primary key from the base table, PostgreSQL will throw a foreign key violation error.
-- 
 
 ## TO-DO (Me)
 - Transition API documentation in ReadMe to Open API

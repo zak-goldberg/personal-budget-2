@@ -2,16 +2,22 @@
 
 ## Getting Started
 ### Database
-To set up the database, create a PostgreSQL database, connect to the database via `psql` and run the following commands (make sure the pwd is the root folder of the repository):
-  1. `\i configs/db-tables-indexes.sql`
-  2. `\i configs/db-functions-triggers.sql`
-  3. `\i test/test-data.sql`
+To set up the database, [create a PostgreSQL database](https://tomcam.github.io/postgres/#creating-a-database), connect to the database, and run the following commands in `psql` (make sure the pwd is the root folder of the repository):
+``` bash
+\i configs/db-tables-indexes.sql
+\i configs/db-functions-triggers.sql
+\i test/test-data.sql
+```
 ### Server
-To start the server run the following commands in the root folder:
-1. `npm install`
-    - Installs all relevant dependencies
-2. `DATABASE_URL=<postgresql://username:password@host:port/database_name> node app.js`
-    - Starts the server using the DATABASE_URL environmental variable
+To start the server run the following commands in the root folder.
+1. Install dependencies:
+``` bash
+npm install
+```
+2. Start the server using the DATABASE_URL environmental variable. Update the portion in `<>` with releavant values.
+``` bash
+DATABASE_URL=<postgresql://username:password@host:port/database_name> node app.js
+```
 ### Documentation
 - [PostgreSQL DB Diagram](https://dbdiagram.io/d/Personal-Budget-Part-2-670f078197a66db9a31ca699)
 - [Open API 3.0 Documentation](./docs/api-doc.yaml)
